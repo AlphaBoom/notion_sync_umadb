@@ -24,4 +24,4 @@ Sync data from local Umamusume game data to Notion database. Facilitate pointing
 
 ## 关于资源图标和上传图片
 
-获取游戏图标使用了UnityPy，上传图片使用了Cloudinary
+获取游戏图标使用了UnityPy,上传图片使用了Cloudinary.如果需要使用要额外安装对应的依赖
