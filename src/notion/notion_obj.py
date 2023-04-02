@@ -1,35 +1,14 @@
-from typing import Optional,Iterable,Union,Dict
+from typing import Optional,Union,Dict
 from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin,config,Undefined
-from enum import Enum
+
+from src.notion.noton_enums import *
 
 class Mixin(DataClassJsonMixin):
     dataclass_json_config = config(  # type: ignore
         undefined=Undefined.EXCLUDE,
         exclude=lambda f: f is None # type: ignore
     )["dataclasses_json"]
-
-class ColorType(Enum):
-    blue = 'blue'
-    blue_background = 'blue_background'
-    brown = 'brown'
-    brown_background = 'brown_background'
-    default = 'default'
-    gray = 'gray'
-    gray_background = 'gray_background'
-    green = 'green'
-    green_background = 'green_background'
-    orange = 'orange'
-    orange_background = 'orange_background'
-    yellow = 'yellow'
-    pink = 'pink'
-    pink_background = 'pink_background'
-    purple = 'purple'
-    purple_background = 'purple_background'
-    red = 'red'
-    red_background = 'red_background'
-    yellow_background = 'yellow_background'
-
 
 @dataclass
 class Emoji(Mixin):
@@ -58,13 +37,6 @@ class User(Mixin):
     type:Optional[str] = None
     name:Optional[str] = None
     avatar_url:Optional[str] = None
-
-
-class ParentType(Enum):
-    DATABASE = 'database_id'
-    PAGE = 'page_id'
-    WORKSPACE = 'workspace'
-    BLOCK = 'block_id'
 
 @dataclass
 class Parent(Mixin):
@@ -145,7 +117,7 @@ class RichText(Mixin):
 @dataclass
 class Bookmark(Mixin):
     url:str
-    caption:Iterable[RichText] = None
+    caption:list[RichText] = None
 
 @dataclass
 class Breakcrumb(Mixin):
@@ -154,37 +126,48 @@ class Breakcrumb(Mixin):
 @dataclass
 class BulletedListItem(Mixin):
     color:str
-    rich_text:Iterable[RichText] = None
-    children:Iterable['Block'] = None
+    rich_text:list[RichText] = None
+    children:list['Block'] = None
 
 @dataclass
 class Callout(Mixin):
-    rich_text:Iterable[RichText] = None
+    rich_text:list[RichText] = None
     icon:Optional[Union[Emoji,File]] = None
 
 @dataclass
 class Heading1(Mixin):
-    rich_text:Iterable[RichText] = None
+    rich_text:list[RichText] = None
     color:str = 'default'
     is_toggleable:bool = False
 
 @dataclass
 class Heading2(Mixin):
-    rich_text:Iterable[RichText] = None
+    rich_text:list[RichText] = None
     color:str = 'default'
     is_toggleable:bool = False
 
 @dataclass
 class Heading3(Mixin):
-    rich_text:Iterable[RichText] = None
+    rich_text:list[RichText] = None
     color:str = 'default'
     is_toggleable:bool = False
 
 @dataclass
 class Paragraph(Mixin):
-    rich_text:Iterable[RichText] = None
+    rich_text:list[RichText] = None
     color:str = 'default'
-    children:Iterable['Block'] = None
+    children:list['Block'] = None
+
+@dataclass
+class Table(Mixin):
+    table_width:int
+    has_column_header:bool
+    has_row_header:bool
+    children:list['Block'] = None
+
+@dataclass
+class TableRow(Mixin):
+    cells: list[list[RichText]]
 
 @dataclass
 class Block(Mixin):
@@ -206,13 +189,9 @@ class Block(Mixin):
     heading_2:Optional[Heading2] = None
     heading_3:Optional[Heading3] = None
     paragraph:Optional[Paragraph] = None
-
-
-class NumberFormat(Enum):
-    argentine_peso = 'argentine_peso'
-    baht = 'baht'
-    number = 'number'
-    number_with_commas = 'number_with_commas'
+    table:Optional[Table] = None
+    table_row:Optional[TableRow] = None
+    divider:Optional[dict] = None
 
 
 @dataclass
@@ -223,21 +202,21 @@ class PropertyNumber(Mixin):
 class Property(Mixin):
     id:str = None
     type:str = None
-    title:Iterable[RichText] = None
-    rich_text:Iterable[RichText] = None
+    title:list[RichText] = None
+    rich_text:list[RichText] = None
     number:Optional[Union[PropertyNumber,int]] = None
     select:Optional[Union[Emoji,File]] = None
-    multi_select:Iterable[Union[Emoji,File]] = None
+    multi_select:list[Union[Emoji,File]] = None
     date:Optional[Dict[str,str]] = None
-    people:Iterable[User] = None
-    files:Iterable[File] = None
+    people:list[User] = None
+    files:list[File] = None
     checkbox:bool = None
     url:str = None
     email:str = None
     phone_number:str = None
-    formula:Iterable[RichText] = None
-    relation:Iterable[Union[Emoji,File]] = None
-    rollup:Iterable[RichText] = None
+    formula:list[RichText] = None
+    relation:list[Union[Emoji,File]] = None
+    rollup:list[RichText] = None
     created_time:str = None
     created_by:User = None
     last_edited_time:str = None
@@ -253,8 +232,8 @@ class Database(Mixin):
     created_by:User
     last_edited_time:str
     last_edited_by:User
-    title:Iterable[RichText]
-    description:Iterable[RichText]
+    title:list[RichText]
+    description:list[RichText]
     properties:Dict[str,Property]
     icon:Optional[Union[Emoji,File]] = None
     cover:Optional[File] = None
@@ -279,6 +258,6 @@ class Page(Mixin):
 @dataclass
 class NotionList(Mixin):
     object:str
-    results:Iterable[Page]
+    results:list[Page]
     next_cursor:str = None
     has_more:bool = False

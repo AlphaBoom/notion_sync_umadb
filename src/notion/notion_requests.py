@@ -6,14 +6,14 @@ from src.notion.notion_obj import *
 class CreatePageRequest(Mixin):
     parent:Parent
     properties:Dict[str,Property]
-    children:Iterable[Block] = None
+    children:list[Block] = None
     icon:Optional[Union[Emoji,File]] = None
     cover:Optional[File] = None
 
 @dataclass
 class CreateDatabaseRequest(Mixin):
     parent:Parent
-    title:Iterable[RichText]
+    title:list[RichText]
     properties:Dict[str,Property]
     icon:Optional[Union[Emoji,File]] = None
     cover:Optional[File] = None

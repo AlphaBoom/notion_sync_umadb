@@ -2,4 +2,4 @@
 __pycache__
 tools/images/
 output/
-databaseid
+local.properties

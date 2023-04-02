@@ -1,6 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass,field
 from typing import List
 from enum import Enum
+from collections import namedtuple
+
+Talent = namedtuple('Talent', 'speed stamina power guts wiz')
+Proper = namedtuple('Proper', 'short mile middle long nige senko sashi oikomi turf dirt')
+Status = namedtuple('Status', 'speed stamina power guts wiz')
 
 class SkillType(Enum):
     Speed = 1
@@ -56,3 +61,15 @@ class Skill:
     description: str
     icon_id: int
     dataList: List[SkillData]
+
+
+@dataclass
+class CharacterCard:
+    id: int
+    name: str
+    bg_id: int
+    talent_info: Talent
+    proper_set: dict[int,Proper] = field(default_factory=dict)
+    status_set: dict[int,Status] = field(default_factory=dict)
+    available_skill_set: dict[int,List[int]] = None
+    rairty_skill_set: dict[int,List[int]] = field(default_factory=dict)

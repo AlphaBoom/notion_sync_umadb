@@ -114,7 +114,7 @@ if __name__ == "__main__":
     client = NotionClient(token_v2=os.getenv("NOTION_TOKEN"))
     block = client.get_block(os.getenv("UPLOAD_FILE_BLOCK_LINK"))
     mapping = {}
-    for root, dirs, files in os.walk("tools/images"):
+    for root, dirs, files in os.walk("tools/images/skill_icon"):
         for file in files:
             file_path = Path(root) / file
             print(f"Uploading {file_path}...")
@@ -122,5 +122,5 @@ if __name__ == "__main__":
             with open("output/image_upload.log","a") as f:
                 f.write(f"{file} {mapping[file]}")
                 f.write('\n')
-    with open("output/iamge_upload.json", "w") as f:
+    with open("output/image_upload.json", "w") as f:
         json.dump(mapping, f, indent=4)

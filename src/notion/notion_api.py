@@ -45,6 +45,8 @@ def retrieveDatabase(database_id: str) -> Database:
 
 def _get(path, params=None):
     r = requests.get(_BASE_URL + "/" + path, params=params, headers=_headers)
+    if not r:
+        print(r.text)
     r.raise_for_status()
     return r
 
@@ -52,5 +54,7 @@ def _get(path, params=None):
 def _post(path, data=None, json=None):
     r = requests.post(_BASE_URL + "/" + path, data=data,
                       json=json, headers=_headers)
+    if not r:
+        print(r.text)
     r.raise_for_status()
     return r

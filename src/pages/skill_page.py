@@ -48,24 +48,43 @@ class SkillDatabasePage:
 
     def createDatabase(self, database_name, parent_page_id: str) -> Database:
         return createDatabase(self._generateCreateDatabaseRequest(database_name, parent_page_id))
-    
+
     def filterNewSkill(self, skill_list: list[Skill], database_id: str) -> list[Skill]:
-        id_set = self._getallSkillIdInDatabase(database_id)
+        id_set = self._getSkillIdSetInNotionDatabase(database_id)
         return list(filter(lambda skill: int(skill.id) not in id_set, skill_list))
-    
-    def _getallSkillIdInDatabase(self, database_id: str) -> set[int]:
+
+    def _getSkillIdSetInNotionDatabase(self, database_id: str) -> set[int]:
+        pages = self.getAllSkillPageInNotionDatabase(database_id)
         id_set = set()
+        for page in pages:
+            id_set.add(int(page['properties']['id']['number']))
+        return id_set
+
+    def getAllSkillPageInNotionDatabase(self, database_id: str) -> list[Page]:
+        page_list = []
         start_cursor = None
         while True:
-            notion_list  = queryDatabase(database_id,start_cursor=start_cursor, page_size=100)
+            notion_list = queryDatabase(
+                database_id, start_cursor=start_cursor, page_size=100)
             if not notion_list:
                 break
             if not notion_list.has_more:
                 break
             start_cursor = notion_list.next_cursor
             for page in notion_list.results:
-                id_set.add(int(page['properties']['id']['number']))
-        return id_set
+                page_list.append(page)
+        return page_list
+
+    def getSkillPageInNotionDatabase(self, database_id, skill_id) -> Page:
+        notion_list = queryDatabase(database_id, filter={
+            "property": "id",
+            "number": {
+                "equals": skill_id
+            }
+        })
+        if notion_list and notion_list.results:
+            return notion_list.results[0]
+        return None
 
     def _generateCreateDatabaseRequest(self, database_name, parent_page_id: str) -> CreateDatabaseRequest:
         return CreateDatabaseRequest(
@@ -102,8 +121,8 @@ class SkillDetailPage:
         if self.skill_icon_mapping:
             icon_url = self.skill_icon_mapping.get(str(skill.icon_id))
             if icon_url:
-                icon_file = File(
-                    type='external', external=ExternalFile(url=icon_url))
+                icon_file = File(type=FileType.external,
+                                 external=ExternalFile(url=icon_url))
         children_list = self._createPageDetail(skill)
         try:
             createPage(CreatePageRequest(
@@ -142,7 +161,7 @@ class SkillDetailPage:
         else:
             return str(value)
 
-    def _createPageDetail(self, skill: Skill) -> Iterable[Block]:
+    def _createPageDetail(self, skill: Skill) -> list[Block]:
         result = []
         result.append(Block(
             heading_2=Heading2(rich_text=[RichText(text=Text(content="基本信息"))])

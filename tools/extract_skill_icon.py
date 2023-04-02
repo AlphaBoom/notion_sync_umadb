@@ -40,6 +40,8 @@ def getAllIconsPathFromDB(db_path:str)->list[str]:
 
 if __name__ == "__main__":
     # destination folder
-    destination_folder = "tools/images/"
+    destination_folder = "tools/images/skill_icon"
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
     # unpack all assets
     unpack_all_assets(getAllIconsPathFromDB(os.path.join(game_data_path, 'meta')), destination_folder)
