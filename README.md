@@ -2,7 +2,10 @@
 Sync data from local Umamusume game data to Notion database. Facilitate pointing content to detailed data when writing articles, use offical Notion API.
 
 ## 为什么做这个
+> 需要使用可以直接通过Notion复制页面[HERE](https://alphaboom.notion.site/Database-c0477472d548448183fe33a621f78257)
+
 方便在Notion文章中快速关联技能，例如准备大赛马的技能和支援卡配置
+
 ![](https://res.cloudinary.com/djdwogbsk/image/upload/v1680314691/image_3_orjdto.png)
 
 ## 使用说明
