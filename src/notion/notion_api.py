@@ -35,7 +35,7 @@ def queryDatabase(database_id: str, start_cursor: str = None, page_size: int = 1
         params["filter"] = filter
     if sorts is not None:
         params["sorts"] = sorts
-    return NotionList.from_json(_post(f"databases/{database_id}/query", json=params).text, infer_missing=True)
+    return NotionList.from_json(_post(f"databases/{database_id}/query", json=params).text)
 
 
 def retrieveDatabase(database_id: str) -> Database:

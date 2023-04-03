@@ -1,7 +1,4 @@
-import traceback
-
-from src.model import *
-from src.notion import *
+from src.pages.common_page import *
 
 
 def _createTitleProperty(text: str) -> Property:
@@ -22,7 +19,7 @@ def _createNumberProperty(number: int) -> Property:
     )
 
 
-class SkillDatabasePage:
+class SkillDatabasePage(DatabasePage):
 
     def createPropertiesForPage(skill_id, skill_name, skill_description, skill_condition, skill_duration, skill_cooldown, skill_type, skill_value):
         return {
@@ -37,6 +34,7 @@ class SkillDatabasePage:
         }
 
     def __init__(self) -> None:
+        super().__init__()
         self._properties = {
             '技能名称': Property(title={}),
             '技能描述': Property(rich_text={}),
@@ -52,32 +50,10 @@ class SkillDatabasePage:
         return createDatabase(self._generateCreateDatabaseRequest(database_name, parent_page_id))
 
     def filterNewSkill(self, skill_list: list[Skill], database_id: str) -> tuple[list[Skill], set]:
-        id_set = self._getSkillIdSetInNotionDatabase(database_id)
+        id_set = self.getIdSetInNotionDatabase(database_id)
         return (list(filter(lambda skill: int(skill.id) not in id_set, skill_list)), id_set)
 
-    def _getSkillIdSetInNotionDatabase(self, database_id: str) -> set[int]:
-        pages = self.getAllSkillPageInNotionDatabase(database_id)
-        id_set = set()
-        for page in pages:
-            id_set.add(int(page.properties['id'].number))
-        return id_set
-
-    def getAllSkillPageInNotionDatabase(self, database_id: str) -> list[Page]:
-        page_list = []
-        start_cursor = None
-        while True:
-            notion_list = queryDatabase(
-                database_id, start_cursor=start_cursor, page_size=100)
-            if not notion_list:
-                break
-            if not notion_list.has_more:
-                break
-            start_cursor = notion_list.next_cursor
-            for page in notion_list.results:
-                page_list.append(page)
-        return page_list
-
-    def getSkillPageInNotionDatabase(self, database_id, skill_id) -> Page:
+    def getPageInNotionDatabase(self, database_id, skill_id) -> Page:
         notion_list = queryDatabase(database_id, filter={
             "property": "id",
             "number": {
@@ -121,7 +97,7 @@ class SkillDetailPage:
             skill_value = "None"
         icon_file = None
         if self.skill_icon_mapping:
-            icon_url = self.skill_icon_mapping.get(str(skill.icon_id))
+            icon_url = self.skill_icon_mapping.get(skill.icon_id)
             if icon_url:
                 icon_file = File(type=FileType.external,
                                  external=ExternalFile(url=icon_url))

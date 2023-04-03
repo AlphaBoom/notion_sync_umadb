@@ -176,11 +176,11 @@ class Block(Mixin):
     parent:Parent = None
     created_time:str = None
     created_by:User = None
-    last_edited_time:str = None
-    last_edited_by:User = None
-    archived:bool = None
-    has_children:bool = None
-    type:str = None
+    last_edited_time:Optional[str] = None
+    last_edited_by:Optional[User] = None
+    archived:Optional[bool] = None
+    has_children:Optional[bool] = None
+    type:Optional[str] = None
     bookmark:Optional[Bookmark] = None
     breadcrumb:Optional[Breakcrumb] = None
     bulleted_list_item:Optional[BulletedListItem] = None
@@ -199,28 +199,38 @@ class PropertyNumber(Mixin):
     format:NumberFormat = NumberFormat.number
 
 @dataclass
+class SelectOptions(Mixin):
+    name:str
+    color:Optional[ColorType] = None
+    id:Optional[int] = None
+
+@dataclass
+class PropertySelect(Mixin):
+    options:Optional[list[SelectOptions]] = None
+
+@dataclass
 class Property(Mixin):
-    id:str = None
-    type:str = None
-    title:list[RichText] = None
-    rich_text:list[RichText] = None
+    id:Optional[str] = None
+    type:Optional[str] = None
+    title:Optional[list[RichText]] = None
+    rich_text:Optional[list[RichText]] = None
     number:Optional[Union[PropertyNumber,int]] = None
-    select:Optional[Union[Emoji,File]] = None
-    multi_select:list[Union[Emoji,File]] = None
+    select:Optional[PropertySelect] = None
+    multi_select:Optional[list[Union[Emoji,File]]] = None
     date:Optional[Dict[str,str]] = None
-    people:list[User] = None
-    files:list[File] = None
-    checkbox:bool = None
-    url:str = None
-    email:str = None
-    phone_number:str = None
-    formula:list[RichText] = None
-    relation:list[Union[Emoji,File]] = None
-    rollup:list[RichText] = None
-    created_time:str = None
-    created_by:User = None
-    last_edited_time:str = None
-    last_edited_by:User = None
+    people:Optional[list[User]] = None
+    files:Optional[list[File]] = None
+    checkbox:Optional[bool] = None
+    url:Optional[str] = None
+    email:Optional[str] = None
+    phone_number:Optional[str] = None
+    formula:Optional[list[RichText]] = None
+    relation:Optional[list[Union[Emoji,File]]] = None
+    rollup:Optional[list[RichText]] = None
+    created_time:Optional[str] = None
+    created_by:Optional[User] = None
+    last_edited_time:Optional[str] = None
+    last_edited_by:Optional[User] = None
 
 @dataclass
 class Database(Mixin):
@@ -228,13 +238,13 @@ class Database(Mixin):
     id:str
     parent:Parent
     url:str
-    created_time:str
-    created_by:User
-    last_edited_time:str
-    last_edited_by:User
-    title:list[RichText]
-    description:list[RichText]
     properties:Dict[str,Property]
+    created_time:Optional[str] = None
+    created_by:Optional[User] = None
+    last_edited_time:Optional[str] = None
+    last_edited_by:Optional[User] = None
+    title:Optional[list[RichText]] = None
+    description:Optional[list[RichText]] = None
     icon:Optional[Union[Emoji,File]] = None
     cover:Optional[File] = None
     archived:bool = False
@@ -244,20 +254,20 @@ class Database(Mixin):
 class Page(Mixin):
     object:str
     id:str
-    created_time:str
-    created_by:User
-    last_edited_time:str
-    last_edited_by:User
     parent:Parent
-    archived:bool
     properties:Dict[str,Property]
     url:str
+    created_time:Optional[str] = None
+    created_by:Optional[User] = None
+    last_edited_time:Optional[str] = None
+    last_edited_by:Optional[User] = None
+    archived:bool = False
     icon:Optional[Union[Emoji,File]] = None
     cover:Optional[File] = None
 
 @dataclass
 class NotionList(Mixin):
     object:str
-    results:list[Page]
-    next_cursor:str = None
     has_more:bool = False
+    results:Optional[list[Page]] = None
+    next_cursor:Optional[str] = None

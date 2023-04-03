@@ -11,10 +11,14 @@ _TABLE_CARD_RARITY_DATA = 'card_rarity_data'
 _TABLE_CARD_DATA = 'card_data'
 _TABLE_SKILL_SET = 'skill_set'
 _TABLE_AVAILABLE_SKILL_SET = "available_skill_set"
+_TABLE_SUPPORT_CARD_DATA = "support_card_data"
+_TABLE_SUPPORT_CARD_EFFECT_TABLE = "support_card_effect_table"
+_TABLE_SINGLE_MODE_HINT_GAIN = "single_mode_hint_gain"
 
 _TEXT_SKILL_NAME = 47
 _TEXT_SKILL_DESCRIPTION = 48
 _TEXT_CARD_NAME = 4
+_TEXT_SUPPORT_CARD_NAME = 75
 
 
 @dataclass
@@ -104,6 +108,56 @@ class _AvailableSkillSet:
     skill_set_id: int
     skill_id:int
     need_rank:int
+
+@dataclass
+class _SupportCardData:
+    id: int
+    chara_id: int
+    rarity: int
+    exchange_item_id: int
+    effect_table_id: int
+    unique_effect_id: int
+    command_type: int
+    command_id: int
+    support_card_type: int
+    skill_set_id: int
+    detail_pos_x: int
+    detail_pos_y: int
+    detail_scale: int
+    detail_rot_z: int
+    start_date: int
+    outing_max: int
+    effect_id: int
+
+@dataclass
+class _SupportCardEffectTable:
+    id: int
+    type: int
+    init: int
+    limit_lv5: int
+    limit_lv10: int
+    limit_lv15: int
+    limit_lv20: int
+    limit_lv25: int
+    limit_lv30: int
+    limit_lv35: int
+    limit_lv40: int
+    limit_lv45: int
+    limit_lv50: int
+
+@dataclass
+class _SingleModeHintGain:
+    id: int
+    hint_id: int
+    support_card_id: int
+    hint_group: int
+    hint_gain_type: int
+    hint_value_1: int
+    hint_value_2: int
+    group_id: int
+    condition_set_id: int
+    priority: int
+
 
 
 class Umadb:
@@ -206,7 +260,7 @@ class Umadb:
         text_dict = self._get_all_text_data()
         with self as conn:
             cursor = conn.cursor()
-            cursor.execute(f'SELECT * FROM {_TABLE_CARD_DATA}')
+            cursor.execute(f'SELECT * FROM {_TABLE_CARD_DATA} WHERE default_rarity != 0')
             card_data = [_CardData(*row) for row in cursor.fetchall()]
             cursor.execute(f'SELECT * FROM {_TABLE_CARD_RARITY_DATA}')
             card_rarity_data = [_CardRarityData(*row) for row in cursor.fetchall()]
@@ -235,3 +289,45 @@ class Umadb:
             chara_card.rairty_skill_set[card.rarity] = [ id for i in range(10) if (id := getattr(skill_set,f"skill_id{i+1}")) > 0]
         return list(card_dict.values())
 
+    def get_all_support_card_data(self) ->List[SupportCard]:
+        text_dict = self._get_all_text_data()
+        with self as conn:
+            cursor = conn.cursor()
+            cursor.execute(f'SELECT * FROM {_TABLE_SUPPORT_CARD_DATA}')
+            support_card_data = [_SupportCardData(*row) for row in cursor.fetchall()]
+            cursor.execute(f'SELECT * FROM {_TABLE_SUPPORT_CARD_EFFECT_TABLE}')
+            support_card_effect_table_data = [_SupportCardEffectTable(*row) for row in cursor.fetchall()]
+            cursor.execute(f'SELECT * FROM {_TABLE_SINGLE_MODE_HINT_GAIN} WHERE hint_gain_type = 0')
+            hint_gain_data = [_SingleModeHintGain(*row) for row in cursor.fetchall()]
+            hint_skill_dict = collections.defaultdict(list)
+            for hint_gain in hint_gain_data:
+                hint_skill_dict[hint_gain.support_card_id].append(hint_gain.hint_value_1)
+
+        ret = []
+        name_dict = text_dict[_TEXT_SUPPORT_CARD_NAME]
+        for card in support_card_data:
+            name = name_dict[card.id]
+            rarity = SupportCardRarity(card.rarity)
+            type = SupportCardType.Speed
+            if card.support_card_type == 1:
+                if card.command_id == 101:
+                    type = SupportCardType.Speed
+                elif card.command_id == 102:
+                    type = SupportCardType.Power
+                elif card.command_id == 103:
+                    type = SupportCardType.Guts
+                elif card.command_id == 105:
+                    type = SupportCardType.Stamina
+                elif card.command_id == 106:
+                    type = SupportCardType.Wiz
+            elif card.support_card_type == 2:
+                type = SupportCardType.Friend
+            elif card.support_card_type == 3:
+                type = SupportCardType.Team
+            support_card = SupportCard(card.id, name, rarity, type,
+                                       train_skill_list=hint_skill_dict[card.id],
+                                       unique_effect={},effect_table_set={})
+            ret.append(support_card)
+        return ret
+
+            

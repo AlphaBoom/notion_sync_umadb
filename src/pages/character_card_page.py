@@ -1,11 +1,7 @@
-from typing import Callable
-import traceback
-
-from src.model import *
-from src.notion import *
+from src.pages.common_page import *
 
 
-class CharacterCardDatabasePage:
+class CharacterCardDatabasePage(DatabasePage):
 
     def createPropertiesForPage(id, name, talent_speed, talent_stamina, talent_power, talent_guts, talent_wiz):
         return {
@@ -33,6 +29,7 @@ class CharacterCardDatabasePage:
         }
 
     def __init__(self) -> None:
+        super().__init__()
         self._properties = {
             '角色名称': Property(title={}),
             '速度成长率': Property(number=PropertyNumber(format=NumberFormat.percent)),
@@ -49,6 +46,10 @@ class CharacterCardDatabasePage:
             title=[RichText(text=Text(content=database_name))],
             properties=self._properties
         ))
+    
+    def filterNewCard(self, card_list: list[CharacterCard], database_id: str) -> list[CharacterCard]:
+        id_set = self.getIdSetInNotionDatabase(database_id)
+        return list(filter(lambda card: int(card.id) not in id_set, card_list))
 
 
 _proper_color_mapping = {
@@ -86,7 +87,7 @@ class CharacterCardDetailPage:
         if self.icon_mapping is not None:
             icon_file = File(
                 type=FileType.external,
-                external=ExternalFile(url=self.icon_mapping.get(str(card.id)))
+                external=ExternalFile(url=self.icon_mapping.get(card.id))
             )
             if not icon_file.external.url:
                 icon_file = None
@@ -95,7 +96,7 @@ class CharacterCardDetailPage:
         if self.cover_mapping is not None:
             cover_file = File(
                 type=FileType.external,
-                external=ExternalFile(url=self.cover_mapping.get(str(card.id)))
+                external=ExternalFile(url=self.cover_mapping.get(card.id))
             )
             if not cover_file.external.url:
                 cover_file = None
