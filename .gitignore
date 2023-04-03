@@ -3,3 +3,4 @@ __pycache__
 tools/images/
 output/
 local.properties
+/*.record

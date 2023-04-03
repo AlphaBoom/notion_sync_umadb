@@ -21,16 +21,35 @@ class SkillType(Enum):
     ForceOvertakeIn = 11
     ForceOvertakeOut = 12
     TemptationEndTime = 13
+    StartDelayFix = 14
+    NOUSE_13 = 15
+    NOUSE_14 = 16
+    NOUSE = 17
+    NOUSE_3 = 18
+    NOUSE_21 = 19
+    NOUSE_8 = 20
     CurrentSpeed = 21
     CurrentSpeedWithNaturalDeceleration = 22
+    NOUSE_2 = 23
+    NOUSE_4 = 24
+    NOUSE_7 = 25
+    NOUSE_5 = 26
     TargetSpeed = 27
     LaneMoveSpeed = 28
     TemptationPer = 29
     PushPer = 30
     Accel = 31
+    AllStatus = 32
+    NOUSE_10 = 33
+    NOUSE_20 = 34
     TargetLane = 35
     ActivateRandomNormalAndRareSkill = 36
     ActivateRandomRareSkill = 37
+    NOUSE_17 = 38
+    NOUSE_18 = 39
+    ChallengeMatchBonus_Old = 501
+    ChallengeMatchBonusStatus = 502
+    ChallengeMatchBonusMotivation = 503
 
 
 @dataclass

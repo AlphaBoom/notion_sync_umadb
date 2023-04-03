@@ -1,3 +1,5 @@
+import traceback
+
 from src.model import *
 from src.notion import *
 
@@ -49,15 +51,15 @@ class SkillDatabasePage:
     def createDatabase(self, database_name, parent_page_id: str) -> Database:
         return createDatabase(self._generateCreateDatabaseRequest(database_name, parent_page_id))
 
-    def filterNewSkill(self, skill_list: list[Skill], database_id: str) -> list[Skill]:
+    def filterNewSkill(self, skill_list: list[Skill], database_id: str) -> tuple[list[Skill], set]:
         id_set = self._getSkillIdSetInNotionDatabase(database_id)
-        return list(filter(lambda skill: int(skill.id) not in id_set, skill_list))
+        return (list(filter(lambda skill: int(skill.id) not in id_set, skill_list)), id_set)
 
     def _getSkillIdSetInNotionDatabase(self, database_id: str) -> set[int]:
         pages = self.getAllSkillPageInNotionDatabase(database_id)
         id_set = set()
         for page in pages:
-            id_set.add(int(page['properties']['id']['number']))
+            id_set.add(int(page.properties['id'].number))
         return id_set
 
     def getAllSkillPageInNotionDatabase(self, database_id: str) -> list[Page]:
@@ -123,8 +125,8 @@ class SkillDetailPage:
             if icon_url:
                 icon_file = File(type=FileType.external,
                                  external=ExternalFile(url=icon_url))
-        children_list = self._createPageDetail(skill)
         try:
+            children_list = self._createPageDetail(skill)
             createPage(CreatePageRequest(
                 parent=Parent(type=ParentType.DATABASE,
                               database_id=database_id),
@@ -136,7 +138,7 @@ class SkillDetailPage:
                 icon=icon_file
             ))
         except Exception as e:
-            print(e)
+            traceback.print_exc()
             self.failed_count += 1
 
     def _skillDurationFormat(self, time: int) -> str:
@@ -183,46 +185,49 @@ class SkillDetailPage:
         result.append(Block(
             heading_2=Heading2(rich_text=[RichText(text=Text(content="发动条件"))])
         ))
-        result.append(Block(
-            paragraph=Paragraph(rich_text=[
-                RichText(text=Text(content="前置条件："), annotations=Annotation(
-                    bold=True, color=ColorType.purple)),
-                RichText(text=Text(content=skill.dataList[0].precondition)),
-            ])
-        ))
-        result.append(Block(
-            paragraph=Paragraph(rich_text=[
-                RichText(text=Text(content="发动条件："), annotations=Annotation(
-                    bold=True, color=ColorType.purple)),
-                RichText(text=Text(content=skill.dataList[0].condition)),
-            ])
-        ))
-        result.append(Block(
-            heading_3=Heading3(rich_text=[RichText(text=Text(content="效果信息"))])
-        ))
-        for effect in skill.dataList[0].effectList:
+        if skill.dataList:
             result.append(Block(
                 paragraph=Paragraph(rich_text=[
-                    RichText(text=Text(content=self._skillEffectTypeFormat(effect.type) + "："), annotations=Annotation(
+                    RichText(text=Text(content="前置条件："), annotations=Annotation(
                         bold=True, color=ColorType.purple)),
-                    RichText(text=Text(content=self._skillEffectValueFormat(
-                        effect.type, effect.value))),
+                    RichText(
+                        text=Text(content=skill.dataList[0].precondition)),
+                ])
+            ))
+            result.append(Block(
+                paragraph=Paragraph(rich_text=[
+                    RichText(text=Text(content="发动条件："), annotations=Annotation(
+                        bold=True, color=ColorType.purple)),
+                    RichText(text=Text(content=skill.dataList[0].condition)),
                 ])
             ))
         result.append(Block(
-            paragraph=Paragraph(rich_text=[
-                RichText(text=Text(content="持续时间："), annotations=Annotation(
-                    bold=True, color=ColorType.purple)),
-                RichText(text=Text(content=self._skillDurationFormat(
-                    skill.dataList[0].duration))),
-            ])))
-        result.append(Block(
-            paragraph=Paragraph(rich_text=[
-                RichText(text=Text(content="冷却时间："), annotations=Annotation(
-                    bold=True, color=ColorType.purple)),
-                RichText(text=Text(content=self._skillDurationFormat(
-                    skill.dataList[0].cooldown))),
-            ])))
+            heading_3=Heading3(rich_text=[RichText(text=Text(content="效果信息"))])
+        ))
+        if skill.dataList:
+            for effect in skill.dataList[0].effectList:
+                result.append(Block(
+                    paragraph=Paragraph(rich_text=[
+                        RichText(text=Text(content=self._skillEffectTypeFormat(effect.type) + "："), annotations=Annotation(
+                            bold=True, color=ColorType.purple)),
+                        RichText(text=Text(content=self._skillEffectValueFormat(
+                            effect.type, effect.value))),
+                    ])
+                ))
+            result.append(Block(
+                paragraph=Paragraph(rich_text=[
+                    RichText(text=Text(content="持续时间："), annotations=Annotation(
+                        bold=True, color=ColorType.purple)),
+                    RichText(text=Text(content=self._skillDurationFormat(
+                        skill.dataList[0].duration))),
+                ])))
+            result.append(Block(
+                paragraph=Paragraph(rich_text=[
+                    RichText(text=Text(content="冷却时间："), annotations=Annotation(
+                        bold=True, color=ColorType.purple)),
+                    RichText(text=Text(content=self._skillDurationFormat(
+                        skill.dataList[0].cooldown))),
+                ])))
         if len(skill.dataList) > 1:
             result.append(Block(
                 heading_2=Heading2(
@@ -250,8 +255,8 @@ class SkillDetailPage:
             for effect in skill.dataList[0].effectList:
                 result.append(Block(
                     paragraph=Paragraph(rich_text=[
-                        RichText(text=Text(content=self._skillEffectTypeFormat(effect.type) + "：", annotations=Annotation(
-                            bold=True, color=ColorType.purple))),
+                        RichText(text=Text(content=self._skillEffectTypeFormat(effect.type) + "："), annotations=Annotation(
+                            bold=True, color=ColorType.purple)),
                         RichText(text=Text(content=self._skillEffectValueFormat(
                             effect.type, effect.value))),
                     ])

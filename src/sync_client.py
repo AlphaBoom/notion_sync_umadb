@@ -11,6 +11,7 @@ from src.notion import Database
 from src.db import Umadb
 from src.pages.skill_page import SkillDatabasePage, SkillDetailPage
 from src.pages.character_card_page import CharacterCardDatabasePage, CharacterCardDetailPage
+from src.utils.file_utils import read_id_list, write_id_list
 
 class SyncType(Enum):
     skill = 1
@@ -72,14 +73,43 @@ class SyncClient:
     def _load_local_skill_list(self) -> list:
         return list(self.umadb.get_all_skill_data())
 
-    def _update_skill_database(self, database_id, skill_list: list[Skill], thread_count) -> None:
+    def _update_skill_database(self, database_id, skill_list: list[Skill], thread_count, attentive_check) -> None:
         # check update info
         print(f"start to fetch current skill list from database {database_id}")
-        new_skill_list = SkillDatabasePage().filterNewSkill(skill_list, database_id)
+        record_file_path = f"{SyncType.skill.name}_update_{database_id}.record"
+        database_page = SkillDatabasePage()
+        new_skill_list,id_set_in_cloud = database_page.filterNewSkill(skill_list, database_id)
+        record_set = set(read_id_list(record_file_path) or [])
+        for id_in_cloud in id_set_in_cloud:
+            record_set.add(id_in_cloud)
+        new_skill_list = list(filter(lambda skill: skill.id not in record_set, new_skill_list))
         if not new_skill_list:
             print("No new skill to update")
             return
         print(f"local skill count: {len(skill_list)}, new skill count: {len(new_skill_list)}")
+        if attentive_check and len(id_set_in_cloud) >= 900:
+            # if cloud size is too large, use single filter query to check skill whether or not in database
+            temp_list = []
+            origin_count = len(new_skill_list)
+            validate_count_from_filter_query = 0
+            for skill in new_skill_list:
+                page = None
+                try:
+                    page = database_page.getSkillPageInNotionDatabase(database_id, skill.id)
+                except Exception as e:
+                    print(f"Failed to get skill page for skill {skill.id}, error: {e}")
+                if not page:
+                    print(f"Skill {skill.id} not in notion database, add to new skill list")
+                    temp_list.append(skill)
+                else:
+                    print(f"Skill {skill.id} already in notion database, skip")
+                    record_set.add(skill.id)
+                    write_id_list(record_file_path, [skill.id], append=True)
+                    validate_count_from_filter_query += 1
+            new_skill_list = temp_list
+            if validate_count_from_filter_query > 0:
+                write_id_list(record_file_path, record_set)
+            print(f"Origin new skill count {origin_count}, single filter query validate count: {validate_count_from_filter_query}.")
         # start update (now just create new page not update)
         detail_page = SkillDetailPage(self.skill_icon_mapping)
         def end_callback():
@@ -87,17 +117,18 @@ class SyncClient:
                 print(f"Failed to create {detail_page.failed_count} pages")
         self._run_in_multi_thread(thread_count, len(new_skill_list), end_callback, detail_page.createPageInDatabase, lambda i: (database_id, new_skill_list[i]))
 
-    def start_skill_data_sync(self, database_title, root_page_id, thread_count=1):
+    def start_skill_data_sync(self, database_title, root_page_id, thread_count=1, attentive_check=False):
         """
         === Parameters ===
         param database_title: title of the database
         param root_page_id: id of the root page
         param thread_count: number of threads to use
+        param attentive_check: if true, will use single filter query to check skill whether or not in database
         """
         database_id = self._ensure_notion_database_exists(root_page_id, database_title, SyncType.skill)
         print(f"ensure database {database_title} exists, id: {database_id}")
         skill_list = self._load_local_skill_list()
-        self._update_skill_database(database_id, skill_list, thread_count)
+        self._update_skill_database(database_id, skill_list, thread_count, attentive_check)
     
     def _load_local_character_card_list(self) -> list[CharacterCard]:
         return list(self.umadb.get_all_character_card_data())
