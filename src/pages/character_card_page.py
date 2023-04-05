@@ -49,7 +49,7 @@ class CharacterCardDatabasePage(DatabasePage):
     
     def filterNewCard(self, card_list: list[CharacterCard], database_id: str) -> list[CharacterCard]:
         id_set = self.getIdSetInNotionDatabase(database_id)
-        return list(filter(lambda card: int(card.id) not in id_set, card_list))
+        return list(filter(lambda card: card.id not in id_set, card_list))
 
 
 _proper_color_mapping = {
@@ -125,6 +125,8 @@ class CharacterCardDetailPage:
         block_list.extend(self._createRunningStyleProperTable(card))
         block_list.extend(self._createInstristicSkillInfo(
             card, skill_page_mapping, mismatch))
+        block_list.extend(self._createUpgradeSkillInfo(
+            card, skill_page_mapping, mismatch))
         block_list.extend(self._createSkillInfo(
             card, skill_page_mapping, mismatch))
         return block_list
@@ -134,6 +136,14 @@ class CharacterCardDetailPage:
         ret = []
         ret.append(Block(heading_2=Heading2(
             rich_text=[RichText(text=Text(content="基础状态"))])))
+        if card.original_name:
+            ret.append(Block(
+                paragraph=Paragraph(rich_text=[
+                    RichText(text=Text(content="原名："), annotations=Annotation(
+                        bold=True, color=ColorType.purple)),
+                    RichText(text=Text(content=card.original_name)),
+                ])
+            ))
         table_rows = []
         table_rows.append(Block(table_row=TableRow(cells=[
             [RichText(text=Text(content="Rank"))],
@@ -263,6 +273,34 @@ class CharacterCardDetailPage:
         else:
             ret.append(Block(paragraph=Paragraph(rich_text=[RichText(
                 type=RichTextType.mention, mention=Mention(type=MentionType.page, page=MentionPage(id=page_id)))])))
+        ret.append(Block(divider={}))
+        return ret
+
+    def _createUpgradeSkillInfo(self, card: CharacterCard, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]) -> List[Block]:
+        ret = []
+        ret.append(Block(heading_2=Heading2(
+            rich_text=[RichText(text=Text("进化技能"))])))
+        if not card.upgrade_skill_set:
+            ret.append(Block(divider={}))
+            return ret
+        skill_list = []
+        for skill_id_array in card.upgrade_skill_set.values():
+            for skill_id in skill_id_array:
+                page_id = self._getSkillPageId(
+                    skill_id, skill_page_mapping, mismatch)
+                if page_id == None:
+                    if skill_id in self.local_skill_info:
+                        print(f"Skill {skill_id} not found from cloud, using local sill info")
+                        skill = self.local_skill_info[skill_id]
+                        skill_list.append(
+                            RichText(text=Text(content=skill.name)))
+                    else:
+                        print(f"Skill {skill_id} not found ,neither local and cloud")
+                else:
+                    skill_list.append(RichText(type=RichTextType.mention, mention=Mention(
+                        type=MentionType.page, page=MentionPage(id=page_id))))
+                skill_list.append(RichText(text=Text(content="  ")))
+        ret.append(Block(paragraph=Paragraph(rich_text=skill_list)))
         ret.append(Block(divider={}))
         return ret
 

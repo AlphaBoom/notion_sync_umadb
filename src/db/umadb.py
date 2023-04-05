@@ -14,6 +14,7 @@ _TABLE_AVAILABLE_SKILL_SET = "available_skill_set"
 _TABLE_SUPPORT_CARD_DATA = "support_card_data"
 _TABLE_SUPPORT_CARD_EFFECT_TABLE = "support_card_effect_table"
 _TABLE_SINGLE_MODE_HINT_GAIN = "single_mode_hint_gain"
+_TABLE_SKILL_UPGRADE_DESCRIPTION = "skill_upgrade_description"
 
 _TEXT_SKILL_NAME = 47
 _TEXT_SKILL_DESCRIPTION = 48
@@ -158,7 +159,13 @@ class _SingleModeHintGain:
     condition_set_id: int
     priority: int
 
-
+@dataclass
+class _SkillUpgradeDescription:
+    id: int
+    card_id: int
+    rank: int
+    skill_id: int
+    start_date: int
 
 class Umadb:
     def __init__(self, dbpath: str) -> None:
@@ -254,7 +261,18 @@ class Umadb:
                                 SkillEffect(*row[start:start + 7]))
                     skillDataList.append(
                         SkillData(*row[left:left+5], effectList))
-                yield Skill(str(row[2]), row[0], description, str(row[-7]), skillDataList)
+                rarity = row[3]
+                if rarity == 1:
+                    rarity = SkillRarity.Normal
+                elif rarity == 2:
+                    rarity = SkillRarity.Rare
+                elif 3 <= rarity <= 5:
+                    rarity = SkillRarity.Unique
+                elif rarity == 6:
+                    rarity = SkillRarity.Upgrade
+                else:
+                    rarity = SkillRarity.Normal
+                yield Skill(str(row[2]), row[0], description, str(row[-7]), str(row[4]), rarity, skillDataList)
 
     def get_all_character_card_data(self) -> list[CharacterCard]:
         text_dict = self._get_all_text_data()
@@ -271,12 +289,18 @@ class Umadb:
             available_skill_set_dict = collections.defaultdict(lambda:collections.defaultdict(list))
             for available_skill_set in available_skill_set_data:
                 available_skill_set_dict[available_skill_set.skill_set_id][available_skill_set.need_rank].append(str(available_skill_set.skill_id))
+            cursor.execute(f'SELECT * FROM {_TABLE_SKILL_UPGRADE_DESCRIPTION}')
+            skill_upgrade_description_data = [_SkillUpgradeDescription(*row) for row in cursor.fetchall()]
+            skill_upgrade_description_dict = collections.defaultdict(lambda:collections.defaultdict(list))
+            for desc in skill_upgrade_description_data:
+                skill_upgrade_description_dict[desc.card_id][desc.rank].append(str(desc.skill_id))
         card_dict = {}
         name_dict = text_dict[_TEXT_CARD_NAME]
         for card in card_data:
             chara_card = CharacterCard(str(card.id), name_dict[card.id], str(card.bg_id), Talent(
                 card.talent_speed, card.talent_stamina, card.talent_power, card.talent_guts, card.talent_wiz))
             chara_card.available_skill_set = available_skill_set_dict[card.skill_set_id]
+            chara_card.upgrade_skill_set = skill_upgrade_description_dict[card.id]
             card_dict[card.id] = chara_card
         for card in card_rarity_data:
             chara_card: CharacterCard = card_dict[card.card_id]

@@ -19,14 +19,23 @@ def _createNumberProperty(number: int) -> Property:
     )
 
 
+_rarity_mapping = {
+    SkillRarity.Normal: "普通",
+    SkillRarity.Rare: "稀有",
+    SkillRarity.Unique: "固有",
+    SkillRarity.Upgrade: "进化",
+}
+
+
 class SkillDatabasePage(DatabasePage):
 
-    def createPropertiesForPage(skill_id, skill_name, skill_description, skill_condition, skill_duration, skill_cooldown, skill_type, skill_value):
+    def createPropertiesForPage(skill_id, skill_name, skill_description, skill_rarity: SkillRarity, skill_condition, skill_duration, skill_cooldown, skill_type, skill_value):
         return {
             "技能名称": _createTitleProperty(skill_name),
             "技能描述": _createRichTextProperty(skill_description),
+            "技能稀有度": Property(select=SelectOptions(name=_rarity_mapping[skill_rarity])),
             "技能条件": _createRichTextProperty(skill_condition),
-            "技能类型": _createRichTextProperty(skill_type),
+            "效果类型": _createRichTextProperty(skill_type),
             "技能数值": _createRichTextProperty(skill_value),
             "技能持续时间": _createNumberProperty(skill_duration),
             "技能冷却时间": _createNumberProperty(skill_cooldown),
@@ -38,10 +47,18 @@ class SkillDatabasePage(DatabasePage):
         self._properties = {
             '技能名称': Property(title={}),
             '技能描述': Property(rich_text={}),
+            '技能稀有度': Property(select=PropertySelect(
+                options=[SelectOptions(name=_rarity_mapping[SkillRarity.Normal], color=ColorType.brown),
+                         SelectOptions(
+                             name=_rarity_mapping[SkillRarity.Rare], color=ColorType.yellow),
+                         SelectOptions(
+                             name=_rarity_mapping[SkillRarity.Unique], color=ColorType.pink),
+                         SelectOptions(name=_rarity_mapping[SkillRarity.Upgrade], color=ColorType.purple)]
+            )),
             '技能条件': Property(rich_text={}),
             '技能持续时间': Property(number=PropertyNumber(format=NumberFormat.number)),
             '技能冷却时间': Property(number=PropertyNumber(format=NumberFormat.number)),
-            '技能类型': Property(rich_text={}),
+            '效果类型': Property(rich_text={}),
             '技能数值': Property(rich_text={}),
             'id': Property(rich_text={}),
         }
@@ -56,7 +73,7 @@ class SkillDatabasePage(DatabasePage):
     def getPageInNotionDatabase(self, database_id, skill_id) -> Page:
         notion_list = queryDatabase(database_id, filter={
             "property": "id",
-            "number": {
+            "rich_text": {
                 "equals": skill_id
             }
         })
@@ -113,7 +130,7 @@ class SkillDetailPage:
                 parent=Parent(type=ParentType.DATABASE,
                               database_id=database_id),
                 properties=SkillDatabasePage
-                .createPropertiesForPage(skill.id, skill_name, skill_description,
+                .createPropertiesForPage(skill.id, skill_name, skill_description,skill.rarity,
                                          skill_condition, skill_duration, skill_cooldown,
                                          skill_type, skill_value),
                 children=children_list,
@@ -157,6 +174,14 @@ class SkillDetailPage:
                 RichText(text=Text(content=skill.name)),
             ])
         ))
+        if skill.original_name:
+            result.append(Block(
+                paragraph=Paragraph(rich_text=[
+                    RichText(text=Text(content="技能原名："), annotations=Annotation(
+                        bold=True, color=ColorType.purple)),
+                    RichText(text=Text(content=skill.original_name)),
+                ])
+            ))
         result.append(Block(
             paragraph=Paragraph(rich_text=[
                 RichText(text=Text(content="技能描述："), annotations=Annotation(

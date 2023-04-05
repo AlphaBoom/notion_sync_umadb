@@ -4,7 +4,7 @@ Sync data from local Umamusume game data to Notion database. Facilitate pointing
 ## 介绍
 > 简单使用可以直接通过Notion复制页面[HERE](https://alphaboom.notion.site/Database-c0477472d548448183fe33a621f78257)
 
-将赛马娘相关数据在Notion上同步保存一份，方便在Notion文章中快速关联技能、人物、支援卡等。例如准备大赛马时，可以快速标记需要的的技能或支援卡配置信息等。
+将赛马娘相关数据在Notion上同步保存一份，方便在Notion文章中快速关联技能、人物、支援卡等。例如准备大赛马时，可以快速标记需要的技能或支援卡配置信息等。
 
 ![](https://res.cloudinary.com/djdwogbsk/image/upload/v1680314691/image_3_orjdto.png)
 
@@ -38,10 +38,10 @@ Sync data from local Umamusume game data to Notion database. Facilitate pointing
 ## 计划任务
 有些效果存在不便，还有些工作需要完成:
 
-- [ ] 对同步攻略站数据方式，增加workflow。通过Github Actions定时人物来保持数据库更新。
+- [ ] 对同步攻略站数据方式，增加workflow。通过Github Actions定时任务来保持数据库更新。
 - [ ] 增加同步攻略站数据模式(例如Urara win)
-- [ ] 支援卡数据缺失事件获取技能列表
-- [ ] 标题列人物名称修改为中文
+- [x] 支援卡数据缺失事件获取技能列表
+- [x] 标题列人物名称修改为中文
 - [x] 上传支援卡数据库
 - [x] 上传人物数据库
 - [x] 上传技能数据库

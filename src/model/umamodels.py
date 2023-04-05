@@ -54,6 +54,12 @@ class SkillType(Enum):
     ChallengeMatchBonusStatus = 502
     ChallengeMatchBonusMotivation = 503
 
+class SkillRarity(Enum):
+    Normal = 1
+    Rare = 2
+    Unique = 3
+    Upgrade = 4
+
 class SupportCardEffectType(Enum):
     NONE = 0
     SpecialTagEffectUp = 1
@@ -129,7 +135,10 @@ class Skill:
     name: str
     description: str
     icon_id: str
+    group_id: str
+    rarity: SkillRarity
     dataList: List[SkillData]
+    original_name:str = None
 
 
 @dataclass
@@ -140,8 +149,10 @@ class CharacterCard:
     talent_info: Talent
     proper_set: dict[int,Proper] = field(default_factory=dict)
     status_set: dict[int,Status] = field(default_factory=dict)
-    available_skill_set: dict[int,List[str]] = None
+    available_skill_set: dict[int,List[str]] = field(default_factory=dict)
+    upgrade_skill_set: dict[int, List[str]] = field(default_factory=dict)
     rairty_skill_set: dict[int,List[str]] = field(default_factory=dict)
+    original_name:str = None
 
 
 @dataclass
@@ -154,3 +165,4 @@ class SupportCard:
     train_skill_list:list[str] = None
     unique_effect:UniqueEffect = None
     effect_table_set:dict[SupportCardEffectType, EffectTable] = None
+    original_name:str = None

@@ -21,6 +21,12 @@ class TestUmadb(unittest.TestCase):
         self.assertIsInstance(skill.name, str, "skill name should be string")
         self.assertIsInstance(skill.description, str, "skill description should be string")
         self.assertIsInstance(skill.icon_id, str, "skill icon id should be string")
+    
+    def test_chara_card_type(self):
+        card:CharacterCard = self.db.get_all_character_card_data()[0]
+        self.assertIsInstance(card.id, str, "card id should be string")
+        self.assertIsInstance(card.name, str, "card name should be string")
+        self.assertIsInstance(card.bg_id, str, "card bg_id should be string")
 
 
 if __name__ == '__main__':

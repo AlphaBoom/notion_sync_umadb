@@ -30,7 +30,7 @@ def _create_database(type:SyncType, database_name, parent_page_id: str) -> Datab
 
 class SyncClient:
 
-    def __init__(self, properties_path, generator:SourceGenerator, update_mode:str) -> None:
+    def __init__(self, properties:Properties, generator:SourceGenerator, update_mode:str) -> None:
         """
         === Parameters ===
         param gamedatapath: path to the game data
@@ -44,7 +44,8 @@ class SyncClient:
         self._skill_page_mapping = None
         self.update_mode = update_mode
         self.source:SourceGenerator = generator
-        self.p = Properties(properties_path)
+        self.p = properties
+        self.failed_retry_count = 0
 
     def setup_external_resource_mapping(self, skill_icon_mapping:StrMapping = None, 
                                         chara_cover_mapping:StrMapping = None, 
@@ -78,10 +79,17 @@ class SyncClient:
     
     def _load_local_skill_list(self) -> list[Skill]:
         return self.source.get_all_skill()
+    
+    def _retry_check(self, failed_count, func, *args):
+        if failed_count > 0 and self.failed_retry_count < 2:
+            self.failed_retry_count += 1
+            print(f"have {failed_count} failed pages, retry {self.failed_retry_count} times")
+            func(*args)
+        else:
+            self.failed_retry_count = 0
 
     def _update_skill_database(self, database_id, skill_list: list[Skill], thread_count, attentive_check) -> None:
         # check update info
-        print(f"start to fetch current skill list from database {database_id}")
         record_file_path = f"{SyncType.skill.name}_update_{database_id}.record"
         database_page = SkillDatabasePage()
         new_skill_list,id_set_in_cloud = database_page.filterNewSkill(skill_list, database_id)
@@ -122,6 +130,7 @@ class SyncClient:
             if detail_page.failed_count > 0:
                 print(f"Failed to create {detail_page.failed_count} pages")
         self._run_in_multi_thread(thread_count, len(new_skill_list), end_callback, detail_page.createPageInDatabase, lambda i: (database_id, new_skill_list[i]))
+        self._retry_check(detail_page.failed_count, self._update_skill_database, database_id, skill_list, thread_count, attentive_check)
 
     def start_skill_data_sync(self, database_title, root_page_id, thread_count=1, attentive_check=False):
         """
@@ -133,7 +142,6 @@ class SyncClient:
         """
         print("start sync skill data...")
         database_id = self._ensure_notion_database_exists(root_page_id, database_title, SyncType.skill)
-        print(f"ensure database {database_title} exists, id: {database_id}")
         skill_list = self._load_local_skill_list()
         self._update_skill_database(database_id, skill_list, thread_count, attentive_check)
     
@@ -187,6 +195,7 @@ class SyncClient:
                 print(f"Failed to create {detail_page.failed_count} pages")
         self._run_in_multi_thread(thread_count, len(card_list), end_callback, detail_page.createPageInDatabase, 
                                   lambda i: (database_id, card_list[i], skill_page_mapping, mismatch_callback))
+        self._retry_check(detail_page.failed_count, self.start_character_card_data_sync, database_title, root_page_id, thread_count)
     
     def _load_local_support_card_list(self) -> list[SupportCard]:
         return self.source.get_all_support_card()
@@ -211,3 +220,4 @@ class SyncClient:
                 print(f"Failed to create {detail_page.failed_count} pages")
         self._run_in_multi_thread(thread_count, len(card_list), end_callback, detail_page.createPageInDatabase, 
                                   lambda i: (database_id, card_list[i], skill_page_mapping, mismatch_callback))
+        self._retry_check(detail_page.failed_count, self.start_support_card_data_sync, database_title, root_page_id, thread_count)

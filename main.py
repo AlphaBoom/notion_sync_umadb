@@ -5,6 +5,7 @@ import sys
 from typing import Callable
 
 from src.sync_client import SyncClient
+from src.config import Properties
 
 def get_mapping(file, fallback:Callable):
     if not file:
@@ -117,14 +118,16 @@ if __name__ == '__main__':
         elif opt == "--support_card_cover_mapping":
             support_card_cover_mapping_file = arg
     
+    properties = Properties(properties_file)
+
     if generator_name == "urara_win":
         from src.generators import UraraWinSourceGenerator
         source = UraraWinSourceGenerator()
     else:
         from src.generators import LocalSourceGenerator
-        source = LocalSourceGenerator()
+        source = LocalSourceGenerator(properties)
     
-    client = SyncClient(properties_file, source, update_mode)
+    client = SyncClient(properties, source, update_mode)
     client.setup_external_resource_mapping(skill_icon_mapping=get_mapping(skill_icon_mapping_file, source.generate_skill_icon_mapping), 
                                            chara_icon_mapping=get_mapping(chara_icon_mapping_file, source.generate_chara_icon_mapping),
                                            chara_cover_mapping=get_mapping(chara_cover_mapping_file, source.generate_chara_cover_mapping),

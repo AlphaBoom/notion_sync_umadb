@@ -66,7 +66,7 @@ class SupportCardDatabasePage(DatabasePage):
     
     def filterNewCard(self, card_list: list[SupportCard], database_id: str) -> list[SupportCard]:
         id_set = self.getIdSetInNotionDatabase(database_id)
-        return list(filter(lambda card: int(card.id) not in id_set, card_list))
+        return list(filter(lambda card: card.id not in id_set, card_list))
 
 
 class SupportCardDetailPage:
@@ -118,6 +118,16 @@ class SupportCardDetailPage:
 
     def _createPageDetail(self, card: SupportCard, skill_page_mapping, mismatch) -> list[Block]:
         block_list = []
+        if card.original_name:
+            block_list.append(Block(heading_2=Heading2(
+                rich_text=[RichText(text=Text(content="描述信息"))])))
+            block_list.append(Block(
+                paragraph=Paragraph(rich_text=[
+                    RichText(text=Text(content="技能原名："), annotations=Annotation(
+                        bold=True, color=ColorType.purple)),
+                    RichText(text=Text(content=card.original_name)),
+                ])
+            ))
         block_list.extend(self._createEventSkillList(card, skill_page_mapping, mismatch))
         block_list.extend(self._createTrainSkillList(card, skill_page_mapping, mismatch))
         block_list.extend(self._createEffectTable(card))
