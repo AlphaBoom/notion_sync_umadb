@@ -23,7 +23,7 @@ class SupportCardDatabasePage(DatabasePage):
             "支援卡名称": Property(title=[RichText(text=Text(support_card_name))]),
             "支援卡稀有度": Property(select=SelectOptions(name=_rarity_name_mapping[support_card_rarity])),
             "支援卡类型": Property(select=SelectOptions(name=_card_type_name_mapping[support_card_type])),
-            "id": Property(number=support_card_id),
+            "id": Property(rich_text=[RichText(text=Text(content=support_card_id))]),
         }
 
     def __init__(self) -> None:
@@ -54,7 +54,7 @@ class SupportCardDatabasePage(DatabasePage):
                 SelectOptions(
                     name=_card_type_name_mapping[SupportCardType.Team], color=ColorType.purple),
             ])),
-            "id": Property(number=PropertyNumber(format=NumberFormat.number)),
+            "id": Property(rich_text={}),
         }
 
     def createDatabase(self, database_name, parent_page_id: str) -> Database:
@@ -76,7 +76,7 @@ class SupportCardDetailPage:
         self.cover_mapping = cover_mapping
         self.icon_mapping = icon_mapping
 
-    def createPageInDatabase(self, database_id, card: SupportCard, skill_page_mapping: dict[int, str], mismatch: Callable[[int], str]):
+    def createPageInDatabase(self, database_id, card: SupportCard, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]):
         icon_file = None
         if self.icon_mapping is not None:
             icon_file = File(
@@ -111,7 +111,7 @@ class SupportCardDetailPage:
             traceback.print_exc()
             self.failed_count += 1
 
-    def _getSkillPageId(self, skill_id: int, skill_page_mapping: dict[str, str], mismatch: Callable[[int], str]) -> str:
+    def _getSkillPageId(self, skill_id: int, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]) -> str:
         if skill_id in skill_page_mapping:
             return skill_page_mapping[skill_id]
         return mismatch(skill_id)

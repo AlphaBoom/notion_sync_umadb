@@ -2,5 +2,5 @@
 __pycache__
 tools/images/
 output/
-local.properties
+/*.properties
 /*.record

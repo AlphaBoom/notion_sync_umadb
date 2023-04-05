@@ -254,7 +254,7 @@ class Umadb:
                                 SkillEffect(*row[start:start + 7]))
                     skillDataList.append(
                         SkillData(*row[left:left+5], effectList))
-                yield Skill(row[2], row[0], description, row[-7], skillDataList)
+                yield Skill(str(row[2]), row[0], description, str(row[-7]), skillDataList)
 
     def get_all_character_card_data(self) -> list[CharacterCard]:
         text_dict = self._get_all_text_data()
@@ -270,14 +270,14 @@ class Umadb:
             available_skill_set_data = [_AvailableSkillSet(*row) for row in cursor.fetchall()]
             available_skill_set_dict = collections.defaultdict(lambda:collections.defaultdict(list))
             for available_skill_set in available_skill_set_data:
-                available_skill_set_dict[available_skill_set.skill_set_id][available_skill_set.need_rank].append(available_skill_set.skill_id)
+                available_skill_set_dict[available_skill_set.skill_set_id][available_skill_set.need_rank].append(str(available_skill_set.skill_id))
         card_dict = {}
         name_dict = text_dict[_TEXT_CARD_NAME]
         for card in card_data:
-            chara_card = CharacterCard(card.id, name_dict[card.id], card.bg_id, Talent(
+            chara_card = CharacterCard(str(card.id), name_dict[card.id], str(card.bg_id), Talent(
                 card.talent_speed, card.talent_stamina, card.talent_power, card.talent_guts, card.talent_wiz))
             chara_card.available_skill_set = available_skill_set_dict[card.skill_set_id]
-            card_dict[chara_card.id] = chara_card
+            card_dict[card.id] = chara_card
         for card in card_rarity_data:
             chara_card: CharacterCard = card_dict[card.card_id]
             chara_card.status_set[card.rarity] = Status(
@@ -286,7 +286,7 @@ class Umadb:
                                                         card.proper_running_style_nige, card.proper_running_style_senko, card.proper_running_style_sashi, card.proper_running_style_oikomi,
                                                         card.proper_ground_turf, card.proper_ground_dirt)
             skill_set:_SkillSet = skill_set_dict[card.skill_set_id]
-            chara_card.rairty_skill_set[card.rarity] = [ id for i in range(10) if (id := getattr(skill_set,f"skill_id{i+1}")) > 0]
+            chara_card.rairty_skill_set[card.rarity] = [ str(id) for i in range(10) if (id := getattr(skill_set,f"skill_id{i+1}")) > 0]
         return list(card_dict.values())
 
     def get_all_support_card_data(self) ->List[SupportCard]:
@@ -301,7 +301,7 @@ class Umadb:
             hint_gain_data = [_SingleModeHintGain(*row) for row in cursor.fetchall()]
             hint_skill_dict = collections.defaultdict(list)
             for hint_gain in hint_gain_data:
-                hint_skill_dict[hint_gain.support_card_id].append(hint_gain.hint_value_1)
+                hint_skill_dict[hint_gain.support_card_id].append(str(hint_gain.hint_value_1))
 
         ret = []
         name_dict = text_dict[_TEXT_SUPPORT_CARD_NAME]
@@ -324,7 +324,7 @@ class Umadb:
                 type = SupportCardType.Friend
             elif card.support_card_type == 3:
                 type = SupportCardType.Team
-            support_card = SupportCard(card.id, name, rarity, type,
+            support_card = SupportCard(str(card.id), name, rarity, type,
                                        train_skill_list=hint_skill_dict[card.id],
                                        unique_effect={},effect_table_set={})
             ret.append(support_card)

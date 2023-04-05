@@ -30,7 +30,7 @@ class SkillDatabasePage(DatabasePage):
             "技能数值": _createRichTextProperty(skill_value),
             "技能持续时间": _createNumberProperty(skill_duration),
             "技能冷却时间": _createNumberProperty(skill_cooldown),
-            "id": _createNumberProperty(skill_id),
+            "id": _createRichTextProperty(skill_id),
         }
 
     def __init__(self) -> None:
@@ -43,7 +43,7 @@ class SkillDatabasePage(DatabasePage):
             '技能冷却时间': Property(number=PropertyNumber(format=NumberFormat.number)),
             '技能类型': Property(rich_text={}),
             '技能数值': Property(rich_text={}),
-            'id': Property(number=PropertyNumber(format=NumberFormat.number)),
+            'id': Property(rich_text={}),
         }
 
     def createDatabase(self, database_name, parent_page_id: str) -> Database:
@@ -83,8 +83,14 @@ class SkillDetailPage:
         skill_description = skill.description
         if skill.dataList:
             skill_condition = skill.dataList[0].condition
-            skill_duration = skill.dataList[0].duration/10000
-            skill_cooldown = skill.dataList[0].cooldown/10000
+            duration = skill.dataList[0].duration
+            if duration > 0:
+                duration = duration/10000
+            skill_duration = duration
+            cooldown = skill.dataList[0].cooldown
+            if cooldown > 0:
+                cooldown = cooldown/10000
+            skill_cooldown = cooldown
             _skill_type = skill.dataList[0].effectList[0].type
             skill_type = self._skillEffectTypeFormat(_skill_type)
             _value = skill.dataList[0].effectList[0].value

@@ -24,7 +24,7 @@ class CharacterCardDatabasePage(DatabasePage):
                 number=talent_wiz/100
             ),
             "id": Property(
-                number=id
+                rich_text=[RichText(text=Text(content=id))]
             ),
         }
 
@@ -37,7 +37,7 @@ class CharacterCardDatabasePage(DatabasePage):
             '力量成长率': Property(number=PropertyNumber(format=NumberFormat.percent)),
             '根性成长率': Property(number=PropertyNumber(format=NumberFormat.percent)),
             '智力成长率': Property(number=PropertyNumber(format=NumberFormat.percent)),
-            'id': Property(number=PropertyNumber(format=NumberFormat.number)),
+            'id': Property(rich_text={}),
         }
 
     def createDatabase(self, database_name, parent_page_id: str) -> Database:
@@ -82,7 +82,7 @@ class CharacterCardDetailPage:
         self.icon_mapping = icon_mapping
         self.local_skill_info = local_skill_info
 
-    def createPageInDatabase(self, database_id, card: CharacterCard, skill_page_mapping: dict[int, str], missmatch: Callable[[int], str]):
+    def createPageInDatabase(self, database_id, card: CharacterCard, skill_page_mapping: StrMapping, missmatch: Callable[[str], str]):
         icon_file = None
         if self.icon_mapping is not None:
             icon_file = File(
@@ -117,7 +117,7 @@ class CharacterCardDetailPage:
             traceback.print_exc()
             self.failed_count += 1
 
-    def _createPageDetail(self, card: CharacterCard, skill_page_mapping: dict[int, str], mismatch: Callable[[int], str]) -> List[Block]:
+    def _createPageDetail(self, card: CharacterCard, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]) -> List[Block]:
         block_list = []
         block_list.extend(self._createStatusTable(card))
         block_list.extend(self._createGroundProperTable(card))
@@ -238,12 +238,12 @@ class CharacterCardDetailPage:
         ret.append(Block(divider={}))
         return ret
 
-    def _getSkillPageId(self, skill_id: int, skill_page_mapping: dict[str, str], mismatch: Callable[[int], str]) -> str:
+    def _getSkillPageId(self, skill_id: int, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]) -> str:
         if skill_id in skill_page_mapping:
             return skill_page_mapping[skill_id]
         return mismatch(skill_id)
 
-    def _createInstristicSkillInfo(self, card: CharacterCard, skill_page_mapping: dict[int, str], mismatch: Callable[[int], str]) -> List[Block]:
+    def _createInstristicSkillInfo(self, card: CharacterCard, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]) -> List[Block]:
         ret = []
         ret.append(Block(heading_2=Heading2(
             rich_text=[RichText(text=Text("固有技能"))])))
@@ -266,7 +266,7 @@ class CharacterCardDetailPage:
         ret.append(Block(divider={}))
         return ret
 
-    def _createSkillInfo(self, card: CharacterCard, skill_page_mapping: dict[int, str], mismatch: Callable[[int], str]) -> List[Block]:
+    def _createSkillInfo(self, card: CharacterCard, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]) -> List[Block]:
         ret = []
         ret.append(Block(heading_2=Heading2(
             rich_text=[RichText(text=Text("技能"))])))

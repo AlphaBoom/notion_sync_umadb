@@ -6,11 +6,11 @@ from src.notion import *
 
 class DatabasePage:
     
-    def getIdSetInNotionDatabase(self, database_id: str) -> set[int]:
+    def getIdSetInNotionDatabase(self, database_id: str) -> set[str]:
         pages = self.getAllPageInNotionDatabase(database_id)
         id_set = set()
         for page in pages:
-            id_set.add(int(page.properties['id'].number))
+            id_set.add(page.properties['id'].rich_text[0].text.content)
         return id_set
 
     def getAllPageInNotionDatabase(self, database_id: str) -> list[Page]:

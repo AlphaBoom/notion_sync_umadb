@@ -1,19 +1,22 @@
 import requests
-from dotenv import load_dotenv
 import os
 
 from src.notion.notion_obj import *
 from src.notion.notion_requests import *
 
-load_dotenv()
-
 _BASE_URL = "https://api.notion.com/v1"
 
-_headers = {
-    "Authorization": f"Bearer {os.getenv('NOTION_API_KEY')}",
-    "Content-Type": "application/json",
-    "Notion-Version": "2022-06-28"
-}
+def _headers():
+    vars = globals()
+    if '__headers' in globals():
+        return vars['__headers']
+    else:
+        vars['__headers'] = {
+            "Authorization": f"Bearer {os.getenv('NOTION_API_KEY')}",
+            "Content-Type": "application/json",
+            "Notion-Version": "2022-06-28"
+        }
+        return vars['__headers']
 
 
 def createPage(request: CreatePageRequest) -> Page:
@@ -44,7 +47,7 @@ def retrieveDatabase(database_id: str) -> Database:
 
 
 def _get(path, params=None):
-    r = requests.get(_BASE_URL + "/" + path, params=params, headers=_headers)
+    r = requests.get(_BASE_URL + "/" + path, params=params, headers=_headers())
     if not r:
         print(r.text)
     r.raise_for_status()
@@ -53,7 +56,7 @@ def _get(path, params=None):
 
 def _post(path, data=None, json=None):
     r = requests.post(_BASE_URL + "/" + path, data=data,
-                      json=json, headers=_headers)
+                      json=json, headers=_headers())
     if not r:
         print(r.text)
     r.raise_for_status()

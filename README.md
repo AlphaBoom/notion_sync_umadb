@@ -1,10 +1,10 @@
 # Notion sync umadb
 Sync data from local Umamusume game data to Notion database. Facilitate pointing content to detailed data when writing articles, use offical Notion API.
 
-## 为什么做这个
-> 需要使用可以直接通过Notion复制页面[HERE](https://alphaboom.notion.site/Database-c0477472d548448183fe33a621f78257)
+## 介绍
+> 简单使用可以直接通过Notion复制页面[HERE](https://alphaboom.notion.site/Database-c0477472d548448183fe33a621f78257)
 
-方便在Notion文章中快速关联技能，例如准备大赛马的技能和支援卡配置
+将赛马娘相关数据在Notion上同步保存一份，方便在Notion文章中快速关联技能、人物、支援卡等。例如准备大赛马时，可以快速标记需要的的技能或支援卡配置信息等。
 
 ![](https://res.cloudinary.com/djdwogbsk/image/upload/v1680314691/image_3_orjdto.png)
 
@@ -24,7 +24,28 @@ Sync data from local Umamusume game data to Notion database. Facilitate pointing
     NOTION_API_KEY=""
     ROOT_PAGE_ID=""
     ```
+5. 运行[run_local.py](run_local.py)即可在Notion上建立对应的数据库。可以适当修改该文件的参数，需要注意的参数：
+    * local_properties: 该参数内容对应一个配置文件，如果文件不存在，会创建新的数据库。文件存在，则会根据文件信息选择更新已有的数据库或创建数据库
+        ```properties
+        [database_id]
+        #技能数据库
+        skill = d60a258b-ede7-4cd7-bdf6-8248bcb88152
+        #人物数据库
+        character_card = bf1bde80-14b7-4a52-982a-73af2e94a475
+        #支援卡数据库
+        support_card = 7718ef63-967f-4c87-a7d8-9c99156a3d6a
+        ```
+## 计划任务
+有些效果存在不便，还有些工作需要完成:
 
-## 关于资源图标和上传图片
+- [ ] 对同步攻略站数据方式，增加workflow。通过Github Actions定时人物来保持数据库更新。
+- [ ] 增加同步攻略站数据模式(例如Urara win)
+- [ ] 支援卡数据缺失事件获取技能列表
+- [ ] 标题列人物名称修改为中文
+- [x] 上传支援卡数据库
+- [x] 上传人物数据库
+- [x] 上传技能数据库
 
-获取游戏图标使用了UnityPy,上传图片使用了Cloudinary.如果需要使用要额外安装对应的依赖
+## 其他
+
+关于游戏图标获取以及图片上传参考以下目录：[tools/](tools/) 以及 [scripts/](scripts/)

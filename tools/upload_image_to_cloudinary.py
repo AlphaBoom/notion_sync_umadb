@@ -12,12 +12,18 @@ load_dotenv()
 
 # Config
 cloudinary.config(
-    cloud_name="djdwogbsk",
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
     api_key=os.getenv("CLOUDINARY_API_KEY"),
     api_secret=os.getenv("CLOUDINARY_API_SECRET"),
     secure=True
 )
 
+def get_id_from_key(key):
+    ret = key.rsplit('_',1)
+    if ret:
+        return ret[-1]
+    else:
+        return key
 
 def upload_to_cloudinary(source_dir:str, output:str, width:int, height:int, crop:str, search:str,upload_file:bool):
     cloud_resources = set()
@@ -36,16 +42,21 @@ def upload_to_cloudinary(source_dir:str, output:str, width:int, height:int, crop
             url, options = cloudinary_url(
                 public_id, width=width, height=height, crop=crop)
             mapping[public_id] = url
-
+    mapping = {get_id_from_key(key):value for key,value in mapping.items()}
+    output_dir = os.path.dirname(output)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     with open(output, "w") as f:
         json.dump(mapping, f, indent=4)
 
+def help():
+    print("upload_skill_icon_to_cloudinary.py -i <input_dir> -o <output_file> -w <width> -h <height> -c <crop> -s <search expression> -d (do not upload file just generate mapping file)")
 
 if __name__ == "__main__":
     try:
       opts,args = getopt.getopt(sys.argv[1:],"i:o:w:h:c:ds:")
     except getopt.GetoptError:
-        print("upload_skill_icon_to_cloudinary.py -i <input_dir> -o <output_file> -w <width> -h <height> -c <crop> -s <search expression> -d (do not upload file just generate mapping file)")
+        help()
         sys.exit(2)
     input_dir = ""
     output_file = ""
@@ -72,7 +83,7 @@ if __name__ == "__main__":
         elif opt == "-s":
             search_expression = arg
     if input_dir == "" or output_file == "":
-        print("upload_skill_icon_to_cloudinary.py -i <input_dir> -o <output_file> -w <width> -h <height> -c <crop> -s <search expression> -d (do not upload file just generate mapping file)")
+        help()
         sys.exit(2)
     upload_to_cloudinary(input_dir, output_file, width, height, crop, search_expression, upload_file)
 

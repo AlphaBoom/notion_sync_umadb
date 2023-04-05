@@ -1,18 +1,17 @@
-import os
 from tqdm import tqdm
 from typing import Callable
 from concurrent.futures import ThreadPoolExecutor
 import threading
 from enum import Enum
 
-from src.config import read_database_id,write_database_id
+from src.config import Properties
 from src.model import *
 from src.notion import Database
-from src.db import Umadb
 from src.pages.skill_page import SkillDatabasePage, SkillDetailPage
 from src.pages.character_card_page import CharacterCardDatabasePage, CharacterCardDetailPage
 from src.pages.support_card_page import SupportCardDatabasePage,SupportCardDetailPage
 from src.utils.file_utils import read_id_list, write_id_list
+from src.generators import SourceGenerator
 
 class SyncType(Enum):
     skill = 1
@@ -31,30 +30,27 @@ def _create_database(type:SyncType, database_name, parent_page_id: str) -> Datab
 
 class SyncClient:
 
-    def __init__(self, gamedatapath: str = None, gameinstalledpath: str = None) -> None:
+    def __init__(self, properties_path, generator:SourceGenerator, update_mode:str) -> None:
         """
         === Parameters ===
         param gamedatapath: path to the game data
         param gameinstalledpath: path to the game installed directory
         """
-        if gamedatapath:
-            self.dbpath = os.path.join(gamedatapath, 'master', 'master.mdb')
-        else:
-            self.dbpath = os.path.join(os.path.expanduser(
-                '~'), 'AppData', 'LocalLow', 'Cygames', 'umamusume', 'master', 'master.mdb')
-        self.skill_icon_mapping = None
-        self.chara_cover_mapping = None
-        self.chara_icon_mapping = None
-        self.support_card_cover_mapping = None
-        self.support_card_icon_mapping = None
+        self.skill_icon_mapping:StrMapping = None
+        self.chara_cover_mapping:StrMapping = None
+        self.chara_icon_mapping:StrMapping = None
+        self.support_card_cover_mapping:StrMapping = None
+        self.support_card_icon_mapping:StrMapping = None
         self._skill_page_mapping = None
-        self.umadb = Umadb(self.dbpath)
+        self.update_mode = update_mode
+        self.source:SourceGenerator = generator
+        self.p = Properties(properties_path)
 
-    def setup_external_resource_mapping(self, skill_icon_mapping: dict[int,str] = None, 
-                                        chara_cover_mapping:dict[int, str] = None, 
-                                        chara_icon_mapping:dict[int,str] = None,
-                                        support_card_icon_mapping:dict[int, str] = None,
-                                        support_card_cover_mapping:dict[int, str] = None) -> None:
+    def setup_external_resource_mapping(self, skill_icon_mapping:StrMapping = None, 
+                                        chara_cover_mapping:StrMapping = None, 
+                                        chara_icon_mapping:StrMapping = None,
+                                        support_card_icon_mapping:StrMapping = None,
+                                        support_card_cover_mapping:StrMapping = None) -> None:
         self.skill_icon_mapping = skill_icon_mapping
         self.chara_cover_mapping = chara_cover_mapping
         self.chara_icon_mapping = chara_icon_mapping
@@ -62,12 +58,12 @@ class SyncClient:
         self.support_card_cover_mapping = support_card_cover_mapping
 
     def _ensure_notion_database_exists(self, parent_page_id, title, type:SyncType) -> str:
-        id = read_database_id(type.name)
+        id = self.p.read_database_id(type.name)
         if id:
             return id
         else:
             page_database = _create_database(type, title, parent_page_id)
-            write_database_id(type.name, page_database.id)
+            self.p.write_database_id(type.name, page_database.id)
             return page_database.id
     
     def _run_in_multi_thread(self, thread_count,size, endfunc, func, genfunc: Callable[[int], tuple]):
@@ -80,8 +76,8 @@ class SyncClient:
             pool.shutdown()
         endfunc()
     
-    def _load_local_skill_list(self) -> list:
-        return list(self.umadb.get_all_skill_data())
+    def _load_local_skill_list(self) -> list[Skill]:
+        return self.source.get_all_skill()
 
     def _update_skill_database(self, database_id, skill_list: list[Skill], thread_count, attentive_check) -> None:
         # check update info
@@ -142,19 +138,19 @@ class SyncClient:
         self._update_skill_database(database_id, skill_list, thread_count, attentive_check)
     
     def _load_local_character_card_list(self) -> list[CharacterCard]:
-        return self.umadb.get_all_character_card_data()
+        return self.source.get_all_character_card()
 
-    def _generate_local_skill_mapping(self) -> tuple[dict[str, str],Callable[[int], str]]:
+    def _generate_local_skill_mapping(self) -> tuple[StrMapping,Callable[[str], str]]:
         if self._skill_page_mapping:
             return self._skill_page_mapping
-        skill_database_id = read_database_id(SyncType.skill.name)
+        skill_database_id = self.p.read_database_id(SyncType.skill.name)
         if not skill_database_id:
             print("require sync skill database first")
             return None
         print("fetch current skill database info...")
         skill_database_page = SkillDatabasePage()
         skill_pages = skill_database_page.getAllPageInNotionDatabase(skill_database_id)
-        skill_page_mapping = {page.properties['id'].number : page.id for page in skill_pages}
+        skill_page_mapping = {page.properties['id'].rich_text[0].plain_text : page.id for page in skill_pages}
         lock = threading.Lock()
         def mismatch_callback(skill_id:int)->str:
             page_id = None
@@ -193,7 +189,7 @@ class SyncClient:
                                   lambda i: (database_id, card_list[i], skill_page_mapping, mismatch_callback))
     
     def _load_local_support_card_list(self) -> list[SupportCard]:
-        return self.umadb.get_all_support_card_data()
+        return self.source.get_all_support_card()
     
     def start_support_card_data_sync(self, database_title, root_page_id, thread_count=1):
         """
