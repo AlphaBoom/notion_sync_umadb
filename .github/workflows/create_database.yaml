@@ -1,0 +1,38 @@
+name: "Create database use urarawin data"
+on:
+  workflow_dispatch:
+    inputs:
+      skill_database_title:
+        description: '技能数据库的标题'
+        default: '赛马娘技能数据库'
+        type: string
+      chara_card_database_title:
+        description: '人物数据库的标题'
+        default: '赛马娘人物数据库'
+        type: string
+      support_card_database_title:
+        description: '支援卡数据库的标题'
+        default: '赛马娘支援卡数据库'
+        type: string
+jobs:
+  create_database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements.txt
+      - name: create_database
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          ROOT_PAGE_ID: ${{ secrets.ROOT_PAGE_ID }}
+        run: |
+          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+            --skill_database_title "${{ inputs.skill_database_title }}" --skill_sync_thread_count 5 \
+            --chara_database_title "${{ inputs.chara_card_database_title }}" --chara_sync_thread_count 3 \
+            --support_card_database_title "${{ inputs.support_card_database_title }}" --support_card_sync_thread_count 3
+      - name: check created database id
+        run: cat urarawin.properties
+
+

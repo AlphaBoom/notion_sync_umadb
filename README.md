@@ -35,16 +35,42 @@ Sync data from local Umamusume game data to Notion database. Facilitate pointing
         #支援卡数据库
         support_card = 7718ef63-967f-4c87-a7d8-9c99156a3d6a
         ```
-## 计划任务
-有些效果存在不便，还有些工作需要完成:
+## 更新数据库
 
-- [ ] 对同步攻略站数据方式，增加workflow。通过Github Actions定时任务来保持数据库更新。
-- [ ] 增加同步攻略站数据模式(例如Urara win)
-- [x] 支援卡数据缺失事件获取技能列表
-- [x] 标题列人物名称修改为中文
-- [x] 上传支援卡数据库
-- [x] 上传人物数据库
-- [x] 上传技能数据库
+在游戏更新加入新卡时需要更新数据库，目前支持两种数据源
+
+### 本地数据源
+
+数据来源于DMM客户端，需要本地生成新数据然后再执行上传操作
+
+### UraraWin数据源
+
+可以借助Github WorkFlow自动更新数据，操作步骤如下：
+1. Fork该项目
+2. 在项目settings->Secrets and variables -> Actions中创建两个Repository Secrets
+    ```properties
+    # Notion申请的API KEY
+    NOTION_API_KEY= 
+    # 需要创建数据库的根页面
+    ROOT_PAGE_ID=
+    ```
+3. 到Github Actions 中选择`Create database use urarawin data `然后执行，该任务执行完成后会创建数据库。之后需要记录生成好的Database id用于后续更新使用，这个id可以在Notion上获取，也可以在刚刚创建数据库的工作流的输出信息里看到，查看`check created database id`里面会有如下内容：
+    ```properties
+    [database_id]
+    skill = 58b7e69d-f3cc-4c57-9dde-14efa2da1ce1
+    character_card = c37ea0dc-795d-49bd-8a56-130539117177
+    support_card = fc4540b7-08f7-4917-b33a-d14f2f2bf323
+    ```
+4. 在项目settings->Secrets and variables -> Actions中，这次选择Variables。创建3个Repository variable
+    ```properties
+    # 技能数据库id
+    SKILL_DATABASE_ID=
+    # 角色数据库id
+    CHARA_DATABASE_ID=
+    # 支援卡数据库id
+    SUPPORT_CARD_DATABASE_ID=
+    ```
+默认更新计划是在周3和周6的5:30进行。
 
 ## 其他
 

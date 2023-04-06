@@ -1,0 +1,29 @@
+name: 'Schedule update database'
+
+on:
+  schedule:
+    - cron: '30 5 * * 3,6'
+
+jobs:
+  update_database:
+    if: ${{ vars.SKILL_DATABASE_ID != null && vars.CHARA_DATABASE_ID != null && vars.SUPPORT_CARD_DATABASE_ID != null }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements.txt
+      - name: create urarawin.properties
+        run: |
+          python create_properties.py -f urarawin.properties --skill_database_id ${{ vars.SKILL_DATABASE_ID }} \
+            --chara_database_id ${{ vars.CHARA_DATABASE_ID }} --support_card_database_id ${{ vars.SUPPORT_CARD_DATABASE_ID }}
+      - name: update_database
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          ROOT_PAGE_ID: ${{ secrets.ROOT_PAGE_ID }}
+        run: |
+          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+            --skill_database_title "skill" --skill_sync_thread_count 2 \
+            --chara_database_title "chara" --chara_sync_thread_count 2 \
+            --support_card_database_title "support_card" --support_card_sync_thread_count 2
