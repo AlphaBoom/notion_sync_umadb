@@ -21,7 +21,7 @@ def print_help():
       --local_properties <local_properties> properties file to store notion database id.
       --generator <generator_name> The following generators are supported:
         - local (default): use data from umamusume DMM client database(like master.mdb).
-        - urara_win (WIP): use data from urara-win. This can be used on github workflow.
+        - urarawin : use data from urara-win. This can be used on github workflow.
       --update_mode <update_mode> The following update modes are supported:
         - insert (default): just insert new data to Notion database, do not update existing data.
         - full (WIP): update all data in Notion database.
@@ -37,7 +37,7 @@ def print_help():
       --support_card_icon_mapping <support_card_icon_mapping> 
       --support_card_cover_mapping <support_card_cover_mapping>
     """)
-available_generators = ("local","urara_win")
+available_generators = ("local","urarawin")
 available_update_modes = ("insert","full")
 
 if __name__ == '__main__':
@@ -120,9 +120,9 @@ if __name__ == '__main__':
     
     properties = Properties(properties_file)
 
-    if generator_name == "urara_win":
+    if generator_name == "urarawin":
         from src.generators import UraraWinSourceGenerator
-        source = UraraWinSourceGenerator()
+        source = UraraWinSourceGenerator(properties)
     else:
         from src.generators import LocalSourceGenerator
         source = LocalSourceGenerator(properties)

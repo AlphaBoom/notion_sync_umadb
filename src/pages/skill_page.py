@@ -68,7 +68,7 @@ class SkillDatabasePage(DatabasePage):
 
     def filterNewSkill(self, skill_list: list[Skill], database_id: str) -> tuple[list[Skill], set]:
         id_set = self.getIdSetInNotionDatabase(database_id)
-        return (list(filter(lambda skill: int(skill.id) not in id_set, skill_list)), id_set)
+        return (list(filter(lambda skill: skill.id not in id_set, skill_list)), id_set)
 
     def getPageInNotionDatabase(self, database_id, skill_id) -> Page:
         notion_list = queryDatabase(database_id, filter={
