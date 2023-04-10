@@ -70,8 +70,14 @@ Sync data from local Umamusume game data to Notion database. Facilitate pointing
     # 支援卡数据库id
     SUPPORT_CARD_DATABASE_ID=
     ```
-默认更新计划是在周3和周6的5:30进行。
+默认更新计划是在周3和周6的5:30进行(0时区时间)。
 
 ## 其他
 
+### 资源获取
+
 关于游戏图标获取以及图片上传参考以下目录：[tools/](tools/) 以及 [scripts/](scripts/)
+
+### 全量更新
+
+默认只会在当前数据库基础上创建新页面，如果需要更新已有的页面可以设置更新模式为Full，如果使用GithubAction可以使用Full(Force) update database的工作流。全量更新运行耗时很长，如果当前没有大量文章关联到数据库，建议使用创建新的数据库的方式。
