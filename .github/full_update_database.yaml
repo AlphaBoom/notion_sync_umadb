@@ -1,0 +1,50 @@
+name: 'Full(Force) update database'
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_database:
+        description: "选择要全量更新的数据库"
+        required: true
+        default: '技能'
+        type: choice
+        options:
+          - '技能'
+          - '角色'
+          - '支援卡'
+      database_title:
+        description: "数据库标题"
+        required: true
+        default: '赛马娘技能数据库'
+        type: string
+
+jobs:
+  full_update_database:
+    env:
+      NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+      ROOT_PAGE_ID: ${{ secrets.ROOT_PAGE_ID }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements.txt
+      - name: full update skill database
+        if: ${{ vars.SKILL_DATABASE_ID != null && inputs.target_database == '技能' }}
+        run: |
+          python create_properties.py -f urarawin.properties --skill_database_id ${{ vars.SKILL_DATABASE_ID }} 
+          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+            --update_mode full --skill_database_title "${{ inputs.database_title }}" --skill_sync_thread_count 5 \
+      - name: full update chara database
+        if: ${{ vars.CHARA_DATABASE_ID != null && inputs.target_database == '角色' }}
+        run: |
+          python create_properties.py -f urarawin.properties --chara_database_id ${{ vars.CHARA_DATABASE_ID }} 
+          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+            --update_mode full --chara_database_title "${{ inputs.database_title }}" --chara_sync_thread_count 3 \
+      - name: full update support card database
+        if: ${{ vars.SUPPORT_CARD_DATABASE_ID != null && inputs.target_database == '支援卡' }}
+        run: |
+          python create_properties.py -f urarawin.properties --support_card_database_id ${{ vars.SUPPORT_CARD_DATABASE_ID }} 
+          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+            --update_mode full --support_card_database_title "${{ inputs.database_title }}" --support_card_sync_thread_count 3 \
