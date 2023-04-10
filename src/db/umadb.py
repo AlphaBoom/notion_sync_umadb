@@ -255,7 +255,7 @@ class Umadb:
                         break
                     effectList = []
                     for i in range(3):
-                        start = 20+i*7
+                        start = left+5+i*7
                         if row[start] != 0:
                             effectList.append(
                                 SkillEffect(*row[start:start + 7]))

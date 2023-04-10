@@ -65,10 +65,24 @@ class SkillDatabasePage(DatabasePage):
 
     def createDatabase(self, database_name, parent_page_id: str) -> Database:
         return createDatabase(self._generateCreateDatabaseRequest(database_name, parent_page_id))
+    
+    def updateDatabase(self, database_name, database_id) -> Database:
+        return updateDatabase(UpdateDatabaseRequest(
+            database_id = database_id,
+            title = [RichText(text=Text(content=database_name))],
+            properties=self._properties,
+        ))
 
-    def filterNewSkill(self, skill_list: list[Skill], database_id: str) -> tuple[list[Skill], set]:
-        id_set = self.getIdSetInNotionDatabase(database_id)
-        return (list(filter(lambda skill: skill.id not in id_set, skill_list)), id_set)
+    def filterNewSkill(self, skill_list: list[Skill], database_id: str) -> tuple[list[Skill], list[tuple[Skill,Page]]]:
+        page_dict = self.getPageDictInNotionDatabase(database_id)
+        new_skill_list = []
+        in_cloud_list = []
+        for skill in skill_list:
+            if skill.id not in page_dict:
+                new_skill_list.append(skill)
+            else:
+                in_cloud_list.append((skill, page_dict[skill.id]))
+        return (new_skill_list, in_cloud_list)
 
     def getPageInNotionDatabase(self, database_id, skill_id) -> Page:
         notion_list = queryDatabase(database_id, filter={
@@ -89,13 +103,14 @@ class SkillDatabasePage(DatabasePage):
         )
 
 
-class SkillDetailPage:
+class SkillDetailPage(DetailPage):
 
     def __init__(self, skill_icon_mapping=None) -> None:
         self.failed_count = 0
+        self.failed_update_id_set = set()
         self.skill_icon_mapping = skill_icon_mapping
-
-    def createPageInDatabase(self, database_id, skill: Skill) -> None:
+    
+    def _createProperties(self, skill:Skill):
         skill_name = skill.name
         skill_description = skill.description
         if skill.dataList:
@@ -118,27 +133,35 @@ class SkillDetailPage:
             skill_cooldown = -1
             skill_type = "None"
             skill_value = "None"
-        icon_file = None
-        if self.skill_icon_mapping:
-            icon_url = self.skill_icon_mapping.get(skill.icon_id)
-            if icon_url:
-                icon_file = File(type=FileType.external,
-                                 external=ExternalFile(url=icon_url))
+        return SkillDatabasePage.createPropertiesForPage(skill.id, skill_name, skill_description,skill.rarity,
+                                         skill_condition, skill_duration, skill_cooldown,
+                                         skill_type, skill_value)
+
+    def createPageInDatabase(self, database_id, skill: Skill) -> None:
         try:
+            icon_file = self.getFileInMapping(skill.icon_id, self.skill_icon_mapping)
             children_list = self._createPageDetail(skill)
             createPage(CreatePageRequest(
                 parent=Parent(type=ParentType.DATABASE,
                               database_id=database_id),
-                properties=SkillDatabasePage
-                .createPropertiesForPage(skill.id, skill_name, skill_description,skill.rarity,
-                                         skill_condition, skill_duration, skill_cooldown,
-                                         skill_type, skill_value),
+                properties=self._createProperties(skill),
                 children=children_list,
                 icon=icon_file
             ))
         except Exception as e:
             traceback.print_exc()
             self.failed_count += 1
+    
+    def updatePageInDatabase(self, page:Page, skill: Skill) -> None:
+        try:
+            icon_file = self.getFileInMapping(skill.icon_id, self.skill_icon_mapping)
+            children_list = self._createPageDetail(skill)
+            properties = self._createProperties(skill)
+            self.updatePageAndBlocks(properties, page, children_list, icon_file)
+        except Exception as e:
+            traceback.print_exc()
+            self.failed_count += 1
+            self.failed_update_id_set.add(skill.id)
 
     def _skillDurationFormat(self, time: int) -> str:
         if time < 0:
@@ -245,21 +268,21 @@ class SkillDetailPage:
                     RichText(text=Text(content="前置条件："), annotations=Annotation(
                         bold=True, color=ColorType.purple)),
                     RichText(
-                        text=Text(content=skill.dataList[0].precondition)),
+                        text=Text(content=skill.dataList[1].precondition)),
                 ])
             ))
             result.append(Block(
                 paragraph=Paragraph(rich_text=[
                     RichText(text=Text(content="发动条件："), annotations=Annotation(
                         bold=True, color=ColorType.purple)),
-                    RichText(text=Text(content=skill.dataList[0].condition)),
+                    RichText(text=Text(content=skill.dataList[1].condition)),
                 ])
             ))
             result.append(Block(
                 heading_3=Heading3(
                     rich_text=[RichText(text=Text(content="效果信息"))])
             ))
-            for effect in skill.dataList[0].effectList:
+            for effect in skill.dataList[1].effectList:
                 result.append(Block(
                     paragraph=Paragraph(rich_text=[
                         RichText(text=Text(content=self._skillEffectTypeFormat(effect.type) + "："), annotations=Annotation(
@@ -273,14 +296,14 @@ class SkillDetailPage:
                     RichText(text=Text(content="持续时间："), annotations=Annotation(
                         bold=True, color=ColorType.purple)),
                     RichText(text=Text(content=self._skillDurationFormat(
-                        skill.dataList[0].duration))),
+                        skill.dataList[1].duration))),
                 ])))
             result.append(Block(
                 paragraph=Paragraph(rich_text=[
                     RichText(text=Text(content="冷却时间："), annotations=Annotation(
                         bold=True, color=ColorType.purple)),
                     RichText(text=Text(content=self._skillDurationFormat(
-                        skill.dataList[0].cooldown))),
+                        skill.dataList[1].cooldown))),
                 ])))
         result.append(Block(
             heading_2=Heading2(rich_text=[RichText(text=Text(content="其他信息"))])

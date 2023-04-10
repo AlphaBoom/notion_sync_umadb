@@ -18,3 +18,27 @@ class CreateDatabaseRequest(Mixin):
     icon:Optional[Union[Emoji,File]] = None
     cover:Optional[File] = None
 
+@dataclass
+class UpdatePageRequest(Mixin):
+    properties:Dict[str,Property]
+    page_id:Optional[str] = None
+    icon:Optional[Union[Emoji,File]] = None
+    cover:Optional[File] = None
+
+@dataclass
+class UpdateDatabaseRequest(Mixin):
+    database_id:Optional[str]
+    title:list[RichText]
+    properties:Dict[str,Property]
+    icon:Optional[Union[Emoji,File]] = None
+    cover:Optional[File] = None
+
+@dataclass
+class UpdateBlockRequest(Mixin):
+    block_id:str
+    block:Block
+
+@dataclass
+class AppendBlockRequest(Mixin):
+    children:list[Block]
+

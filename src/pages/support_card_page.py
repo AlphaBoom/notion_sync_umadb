@@ -64,40 +64,38 @@ class SupportCardDatabasePage(DatabasePage):
             properties=self._properties
         ))
     
-    def filterNewCard(self, card_list: list[SupportCard], database_id: str) -> list[SupportCard]:
-        id_set = self.getIdSetInNotionDatabase(database_id)
-        return list(filter(lambda card: card.id not in id_set, card_list))
+    def updateDatabase(self, database_name, database_id) -> Database:
+        return updateDatabase(UpdateDatabaseRequest(
+            database_id=database_id,
+            title=[RichText(text=Text(content=database_name))],
+            properties=self._properties,
+        ))
+    
+    def filterNewCard(self, card_list: list[CharacterCard], database_id: str) -> tuple[list[CharacterCard],list[tuple[CharacterCard, Page]]]:
+        page_dict = self.getPageDictInNotionDatabase(database_id)
+        new_card_list = []
+        in_cloud_list = []
+        for card in card_list:
+            if card.id not in page_dict:
+                new_card_list.append(card)
+            else:
+                in_cloud_list.append((card, page_dict[card.id]))
+        return (new_card_list, in_cloud_list)
 
 
-class SupportCardDetailPage:
+class SupportCardDetailPage(DetailPage):
 
     def __init__(self, cover_mapping=None, icon_mapping=None) -> None:
         self.failed_count = 0
+        self.failed_update_id_set = set()
         self.cover_mapping = cover_mapping
         self.icon_mapping = icon_mapping
 
     def createPageInDatabase(self, database_id, card: SupportCard, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]):
-        icon_file = None
-        if self.icon_mapping is not None:
-            icon_file = File(
-                type=FileType.external,
-                external=ExternalFile(url=self.icon_mapping.get(card.id))
-            )
-            if not icon_file.external.url:
-                icon_file = None
-                print(f"Icon for {card.name}:({card.id}) not found.")
-        cover_file = None
-        if self.cover_mapping is not None:
-            cover_file = File(
-                type=FileType.external,
-                external=ExternalFile(url=self.cover_mapping.get(card.id))
-            )
-            if not cover_file.external.url:
-                cover_file = None
-                print(f"Cover for {card.name}:({card.id}) not found.")
         try:
-            children_list = self._createPageDetail(
-                card, skill_page_mapping, mismatch)
+            icon_file = self.getFileInMapping(card.id, self.icon_mapping)
+            cover_file = self.getFileInMapping(card.id, self.cover_mapping)
+            children_list = self._createPageDetail(card, skill_page_mapping, mismatch)
             createPage(CreatePageRequest(
                 parent=Parent(type=ParentType.DATABASE,
                               database_id=database_id),
@@ -110,6 +108,19 @@ class SupportCardDetailPage:
         except Exception as e:
             traceback.print_exc()
             self.failed_count += 1
+    
+    def updatePageInDatabase(self, page:Page, card: SupportCard, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]):
+        try:
+            icon_file = self.getFileInMapping(card.id, self.icon_mapping)
+            cover_file = self.getFileInMapping(card.id, self.cover_mapping)
+            properties = SupportCardDatabasePage.createPropertiesForPage(
+                    card.id, card.name, card.rarity, card.type)
+            children_list = self._createPageDetail(card, skill_page_mapping, mismatch)
+            self.updatePageAndBlocks(properties, page, children_list, icon_file, cover_file)
+        except Exception as e:
+            traceback.print_exc()
+            self.failed_count += 1
+            self.failed_update_id_set.add(card.id)
 
     def _getSkillPageId(self, skill_id: int, skill_page_mapping: StrMapping, mismatch: Callable[[str], str]) -> str:
         if skill_id in skill_page_mapping:

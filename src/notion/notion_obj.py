@@ -1,8 +1,10 @@
-from typing import Optional,Union,Dict
+from typing import Optional,Union,Dict,TypeVar,Generic
 from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin,config,Undefined
 
 from src.notion.noton_enums import *
+
+T = TypeVar('T', bound='Mixin')
 
 class Mixin(DataClassJsonMixin):
     dataclass_json_config = config(  # type: ignore
@@ -130,6 +132,12 @@ class BulletedListItem(Mixin):
     children:list['Block'] = None
 
 @dataclass
+class NumberedListItem(Mixin):
+    color:str
+    rich_text:list[RichText] = None
+    children:list['Block'] = None
+
+@dataclass
 class Callout(Mixin):
     rich_text:list[RichText] = None
     icon:Optional[Union[Emoji,File]] = None
@@ -154,9 +162,9 @@ class Heading3(Mixin):
 
 @dataclass
 class Paragraph(Mixin):
-    rich_text:list[RichText] = None
+    rich_text:Optional[list[RichText]] = None
     color:str = 'default'
-    children:list['Block'] = None
+    children:Optional[list['Block']] = None
 
 @dataclass
 class Table(Mixin):
@@ -184,6 +192,7 @@ class Block(Mixin):
     bookmark:Optional[Bookmark] = None
     breadcrumb:Optional[Breakcrumb] = None
     bulleted_list_item:Optional[BulletedListItem] = None
+    numbered_list_item:Optional[NumberedListItem] = None
     callout:Optional[Callout] = None
     heading_1:Optional[Heading1] = None
     heading_2:Optional[Heading2] = None
@@ -266,8 +275,8 @@ class Page(Mixin):
     cover:Optional[File] = None
 
 @dataclass
-class NotionList(Mixin):
+class NotionList(Generic[T],Mixin):
     object:str
     has_more:bool = False
-    results:Optional[list[Page]] = None
+    results:Optional[list[T]] = None
     next_cursor:Optional[str] = None

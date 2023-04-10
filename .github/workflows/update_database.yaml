@@ -3,6 +3,7 @@ name: 'Schedule update database'
 on:
   schedule:
     - cron: '30 5 * * 3,6'
+  workflow_dispatch:
 
 jobs:
   update_database:
