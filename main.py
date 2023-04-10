@@ -24,7 +24,7 @@ def print_help():
         - urarawin : use data from urara-win. This can be used on github workflow.
       --update_mode <update_mode> The following update modes are supported:
         - insert (default): just insert new data to Notion database, do not update existing data.
-        - full (WIP): update all data in Notion database.
+        - full : update all data in Notion database.
       --skill_database_title <skill_database_title>
       --skill_sync_thread_count <skill_sync_thread_count>
       --skill_icon_mapping <skill_icon_mapping> 
@@ -61,11 +61,8 @@ if __name__ == '__main__':
     chara_sync_thread_count = 3
     support_card_sync_thread_count = 3
     skill_database_title = None
-    skill_database_id = None
     chara_database_title = None
-    chara_database_id = None
     support_card_database_title = None
-    support_card_database_id = None
     generator_name = "lcoal"
     update_mode = "insert"
     properties_file = "local.properties"
@@ -91,16 +88,12 @@ if __name__ == '__main__':
             update_mode = arg
         elif opt == "--skill_database_title":
             skill_database_title = arg
-        elif opt == "--skill_databse_id":
-            skill_database_id = arg
         elif opt == "--skill_sync_thread_count":
             skill_sync_thread_count = int(arg)
         elif opt == "--skill_icon_mapping":
             skill_icon_mapping_file = arg
         elif opt == "--chara_database_title":
             chara_database_title = arg
-        elif opt == "--chara_databse_id":
-            chara_database_id = arg
         elif opt == "--chara_sync_thread_count":
             chara_sync_thread_count = int(arg)
         elif opt == "--chara_cover_mapping":
@@ -109,8 +102,6 @@ if __name__ == '__main__':
             chara_icon_mapping_file = arg
         elif opt == "--support_card_database_title":
             support_card_database_title = arg
-        elif opt == "--support_card_database_id":
-            support_card_database_id = arg
         elif opt == "--support_card_sync_thread_count":
             support_card_sync_thread_count = int(arg)
         elif opt == "--support_card_icon_mapping":
@@ -134,9 +125,9 @@ if __name__ == '__main__':
                                            support_card_icon_mapping=get_mapping(support_card_icon_mapping_file, source.generate_support_card_icon_mapping),
                                            support_card_cover_mapping=get_mapping(support_card_cover_mapping_file, source.generate_support_card_cover_mapping))
     root_page_id = os.getenv("ROOT_PAGE_ID")
-    if skill_database_title or skill_database_id:
+    if skill_database_title:
         client.start_skill_data_sync(skill_database_title,root_page_id, thread_count=skill_sync_thread_count)
-    if chara_database_title or chara_database_id:
+    if chara_database_title:
         client.start_character_card_data_sync(chara_database_title,root_page_id, thread_count=chara_sync_thread_count)
-    if support_card_database_title or support_card_database_id:
+    if support_card_database_title:
         client.start_support_card_data_sync(support_card_database_title,root_page_id, thread_count=support_card_sync_thread_count)
