@@ -143,7 +143,7 @@ class DetailPage:
                 rich_text_new = getattr(new_block, block.type).rich_text
                 if len(rich_text) == len(rich_text_new):
                     for i in range(len(rich_text)):
-                        if rich_text[i].text.content != rich_text_new[i].text.content:
+                        if rich_text[i].text and rich_text_new[i].text and rich_text[i].text.content != rich_text_new[i].text.content:
                             return False
                     return True
-        return False
+        return True

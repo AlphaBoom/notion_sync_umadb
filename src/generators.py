@@ -4,7 +4,7 @@ import os
 from src.db import *
 from src.model import *
 from src.config import Properties
-from src.utils.net_utils import get_json_from_github_file
+from src.translators import UraraWinTranslator,TrainersLegendTranslator
 
 
 class SourceGenerator(ABC):
@@ -47,47 +47,19 @@ class LocalSourceGenerator(SourceGenerator):
                 '~'), 'AppData', 'LocalLow', 'Cygames', 'umamusume', 'master', 'master.mdb')
         self.db: Umadb = Umadb(dbpath)
         self.p = properties
-        self.translate_mapping = None
-
-    def _ensure_translate_mapping(self, locale: str):
-        if self.translate_mapping:
-            return
-        target_file = f"output/local_translate_{locale}.json"
-        self.translate_mapping = get_json_from_github_file(
-            self.p, target_file, 'wrrwrr111', 'pretty-derby', 'master', f'src/assert/locales/{locale}.json')
-
-    def translate(self, text, locale: str = 'zh_CN'):
-        if not text:
-            return None
-        self._ensure_translate_mapping(locale)
-        return self.translate_mapping.get(text, text)
+        self.translator = TrainersLegendTranslator(properties)
 
     def get_all_skill(self) -> list[Skill]:
         skill_list = list(self.db.get_all_skill_data())
         for skill in skill_list:
             skill.original_name = skill.name
-            skill.name = self.translate(skill.name)
-        return skill_list
-
-    def _extract_name(self, name: str):
-        if name.startswith('['):
-            nick_name = name[1:name.index(']')]
-            real_name = name[name.index(']') + 1:]
-            return nick_name, real_name
-        return None, name
+        return [self.translator.translate_skill(skill) for skill in skill_list]
 
     def get_all_character_card(self) -> list[CharacterCard]:
         card_list = self.db.get_all_character_card_data()
         for card in card_list:
             card.original_name = card.name
-            nick_name, real_name = self._extract_name(card.name)
-            nick_name = self.translate(nick_name)
-            real_name = self.translate(real_name)
-            if nick_name:
-                card.name = f"[{nick_name}]{real_name}"
-            else:
-                card.name = real_name
-        return card_list
+        return [self.translator.translate_chara_card(card) for card in card_list]
 
     def get_all_support_card(self) -> list[SupportCard]:
         uraradb = Urarawindb(self.p)
@@ -106,22 +78,14 @@ class LocalSourceGenerator(SourceGenerator):
         card_list = self.db.get_all_support_card_data()
         for card in card_list:
             card.original_name = card.name
-            nick_name, real_name = self._extract_name(card.name)
-            nick_name = self.translate(nick_name)
-            real_name = self.translate(real_name)
-            if nick_name:
-                card.name = f"[{nick_name}]{real_name}"
-            else:
-                card.name = real_name
             if card.id in card_skill_list_mapping:
                 card.event_skill_list = card_skill_list_mapping[card.id]
-        return card_list
+        return [self.translator.translate_support_card(card) for card in card_list]
 
 
 class UraraWinSourceGenerator(SourceGenerator):
     def __init__(self, properties: Properties) -> None:
-        self.p = properties
-        self.translate_mapping = None
+        self.translator = UraraWinTranslator(properties)
         self.db = Urarawindb(properties)
         self.skill_list_u: list[UraraSkill] = self.db.get_all_skill_data()
         self.chara_card_list_u: list[UraraCharaCard] = self.db.get_all_chara_card_data(
@@ -154,19 +118,6 @@ class UraraWinSourceGenerator(SourceGenerator):
     def generate_support_card_cover_mapping(self):
         return {card.id: self._format_img_url(card.imgUrl) for card in self.support_card_list_u if card.imgUrl}
 
-    def _ensure_translate_mapping(self, locale: str):
-        if self.translate_mapping:
-            return
-        target_file = f"output/urara_translate_{locale}.json"
-        self.translate_mapping = get_json_from_github_file(
-            self.p, target_file, 'wrrwrr111', 'pretty-derby', 'master', f'src/assert/locales/{locale}.json')
-
-    def translate(self, text, locale: str = 'zh_CN'):
-        if not text:
-            return None
-        self._ensure_translate_mapping(locale)
-        return self.translate_mapping.get(text, text)
-
     def _skill_ability_to_effect(self, ability: UraraSkillAbility) -> SkillEffect:
         return SkillEffect(type=ability.type, value=ability.value, target_type=ability.target_type, target_value=ability.target_value)
 
@@ -175,8 +126,6 @@ class UraraWinSourceGenerator(SourceGenerator):
         for skill_u in self.skill_list_u:
             id = skill_u.id
             original_name = skill_u.name
-            name = self.translate(skill_u.name)
-            desc = self.translate(skill_u.describe) or ""
             if skill_u.rarity:
                 rarity = skill_u.rarity
                 if rarity == 1:
@@ -220,8 +169,9 @@ class UraraWinSourceGenerator(SourceGenerator):
                         skill_data.effectList.append(
                             self._skill_ability_to_effect(ability))
                 skill_data_list.append(skill_data)
-            ret.append(Skill(id, name, desc, id, id,
-                       rarity, skill_data_list, original_name))
+            skill = Skill(id, skill_u.name, skill_u.describe, id, id,
+                       rarity, skill_data_list, original_name)
+            ret.append(self.translator.translate_skill(skill))
         return ret
 
     def _convert_grow(self, grow: str):
@@ -238,8 +188,7 @@ class UraraWinSourceGenerator(SourceGenerator):
         ret = []
         for card_u in self.chara_card_list_u:
             original_name = f"[{card_u.name}]{card_u.charaName}"
-            nick_name = self.translate(card_u.name)
-            name = f"[{nick_name}]{self.translate(card_u.charaName)}"
+            name = original_name
             id = card_u.id
             speed_grow = self._convert_grow(card_u.speedGrow)
             power_grow = self._convert_grow(card_u.powerGrow)
@@ -270,18 +219,16 @@ class UraraWinSourceGenerator(SourceGenerator):
             if card_u.awakeningSkillist:
                 available_skill_set[3] = [
                     id for id in card_u.awakeningSkillist]
-            ret.append(
-                CharacterCard(id, name, "", talentInfo, proper_set=proper_set, rairty_skill_set=rarity_skill_set,
+            card = CharacterCard(id, name, "", talentInfo, proper_set=proper_set, rairty_skill_set=rarity_skill_set,
                               available_skill_set=available_skill_set, original_name=original_name)
-            )
+            ret.append(self.translator.translate_chara_card(card))
         return ret
 
     def get_all_support_card(self) -> list[SupportCard]:
         ret = []
         for card_u in self.support_card_list_u:
             original_name = f"[{card_u.name}]{card_u.charaName}"
-            nick_name = self.translate(card_u.name)
-            name = f"[{nick_name}]{self.translate(card_u.charaName)}"
+            name = original_name
             id = card_u.id
             if card_u.rare == 'SSR':
                 rarity = SupportCardRarity.SSR
@@ -310,8 +257,7 @@ class UraraWinSourceGenerator(SourceGenerator):
             if card_u.trainingEventSkill and card_u.skillList:
                 train_skill_list = [
                     id for id in card_u.skillList if id not in card_u.trainingEventSkill]
-            ret.append(
-                SupportCard(id, name, rarity, type, event_skill_list=card_u.trainingEventSkill,
+            card = SupportCard(id, name, rarity, type, event_skill_list=card_u.trainingEventSkill,
                             train_skill_list=train_skill_list, original_name=original_name)
-            )
+            ret.append(self.translator.translate_support_card(card))
         return ret

@@ -2,7 +2,7 @@ from typing import Optional,Union,Dict,TypeVar,Generic
 from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin,config,Undefined
 
-from src.notion.noton_enums import *
+from src.notion.notion_enums import *
 
 T = TypeVar('T', bound='Mixin')
 
