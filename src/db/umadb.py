@@ -250,7 +250,7 @@ class Umadb:
                 description = cursor.fetchone()[0]
                 skillDataList = []
                 for i in range(2):
-                    left = 15 + i*26
+                    left = 16 + i*26
                     if not row[left + 1]:
                         break
                     effectList = []
