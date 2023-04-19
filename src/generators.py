@@ -62,24 +62,21 @@ class LocalSourceGenerator(SourceGenerator):
         return [self.translator.translate_chara_card(card) for card in card_list]
 
     def get_all_support_card(self) -> list[SupportCard]:
-        uraradb = Urarawindb(self.p)
-        skill_id_mapping = {skill.id: str(
-            skill.db_id) for skill in uraradb.get_all_skill_data() if skill.db_id}
-        card_skill_list_mapping = {str(
-            card_u.db_id): card_u.trainingEventSkill for card_u in uraradb.get_all_support_card_data()}
-        for skill_list in card_skill_list_mapping.values():
-            if not skill_list:
-                continue
-            for i in range(len(skill_list)):
-                if skill_list[i] in skill_id_mapping:
-                    skill_list[i] = skill_id_mapping[skill_list[i]]
-                else:
-                    print(f"skill {skill_list[i]} not found")
+        gamewithdb = Gamewithdb()
+        skill_name_mapping = {skill.name.replace("○","◯"):skill.id for skill in self.db.get_all_skill_data()}
+        gamewith_card_name_mapping = {f"[{card.nick_name}]{card.name}": card for card in gamewithdb.get_all_support_card_data()}
         card_list = self.db.get_all_support_card_data()
         for card in card_list:
             card.original_name = card.name
-            if card.id in card_skill_list_mapping:
-                card.event_skill_list = card_skill_list_mapping[card.id]
+            gamewith_card = gamewith_card_name_mapping.get(card.name)
+            if gamewith_card and gamewith_card.event_skill:
+                # add event skill info
+                event_skill_list = []
+                for skill in gamewith_card.event_skill:
+                    skill_id = skill_name_mapping.get(skill.name)
+                    if skill_id:
+                        event_skill_list.append(skill_id)
+                card.event_skill_list = event_skill_list
         return [self.translator.translate_support_card(card) for card in card_list]
 
 

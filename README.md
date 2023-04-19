@@ -10,7 +10,10 @@ Sync data from local Umamusume game data to Notion database. Facilitate pointing
 
 ## 使用说明
 
-1. 使用Python3运行，依赖信息在[requirements.txt](requirements.txt)
+1. 使用pipenv安装依赖,在项目根目录执行：
+    ```cmd
+    pipenv install --dev
+    ```
 2. 到[Notion integrations](https://www.notion.so/my-integrations)创建一个应用，记下APIKEY
 3. Notion上建一个Page，并在这个Page上关联2.创建的应用，之后记录这个页面的ID。
     页面ID可以通过copy当前页面的链接获得，链接尾的字符串就是id。之后需要根据8-4-4-4-12的方式加入中线即可.
