@@ -21,14 +21,16 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-      - run: pip install -r requirements.txt
+          python-version: '3.10.9'
+      - run: |
+          pip install pipenv
+          pipenv install --deploy
       - name: create_database
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           ROOT_PAGE_ID: ${{ secrets.ROOT_PAGE_ID }}
         run: |
-          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+          pipenv run python main.py --local_properties "urarawin.properties" --generator "urarawin" \
             --skill_database_title "${{ inputs.skill_database_title }}" --skill_sync_thread_count 5 \
             --chara_database_title "${{ inputs.chara_card_database_title }}" --chara_sync_thread_count 3 \
             --support_card_database_title "${{ inputs.support_card_database_title }}" --support_card_sync_thread_count 3

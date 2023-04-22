@@ -28,23 +28,25 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
-      - run: pip install -r requirements.txt
+          python-version: '3.10.9'
+      - run: |
+          pip install pipenv
+          pipenv install --deploy
       - name: full update skill database
         if: ${{ vars.SKILL_DATABASE_ID != null && inputs.target_database == '技能' }}
         run: |
-          python create_properties.py -f urarawin.properties --skill_database_id ${{ vars.SKILL_DATABASE_ID }} 
-          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+          pipenv run python create_properties.py -f urarawin.properties --skill_database_id ${{ vars.SKILL_DATABASE_ID }} 
+          pipenv run python main.py --local_properties "urarawin.properties" --generator "urarawin" \
             --update_mode full --skill_database_title "${{ inputs.database_title }}" --skill_sync_thread_count 5 \
       - name: full update chara database
         if: ${{ vars.CHARA_DATABASE_ID != null && inputs.target_database == '角色' }}
         run: |
-          python create_properties.py -f urarawin.properties --chara_database_id ${{ vars.CHARA_DATABASE_ID }} 
-          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+          pipenv run python create_properties.py -f urarawin.properties --chara_database_id ${{ vars.CHARA_DATABASE_ID }} 
+          pipenv run python main.py --local_properties "urarawin.properties" --generator "urarawin" \
             --update_mode full --chara_database_title "${{ inputs.database_title }}" --chara_sync_thread_count 3 \
       - name: full update support card database
         if: ${{ vars.SUPPORT_CARD_DATABASE_ID != null && inputs.target_database == '支援卡' }}
         run: |
-          python create_properties.py -f urarawin.properties --support_card_database_id ${{ vars.SUPPORT_CARD_DATABASE_ID }} 
-          python main.py --local_properties "urarawin.properties" --generator "urarawin" \
+          pipenv run python create_properties.py -f urarawin.properties --support_card_database_id ${{ vars.SUPPORT_CARD_DATABASE_ID }} 
+          pipenv run python main.py --local_properties "urarawin.properties" --generator "urarawin" \
             --update_mode full --support_card_database_title "${{ inputs.database_title }}" --support_card_sync_thread_count 3 \
