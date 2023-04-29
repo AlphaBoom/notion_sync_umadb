@@ -2,11 +2,13 @@
 Sync data from local Umamusume game data to Notion database. Facilitate pointing content to detailed data when writing articles, use offical Notion API.
 
 ## 介绍
-> 简单使用可以直接通过Notion复制页面[HERE](https://alphaboom.notion.site/Database-c0477472d548448183fe33a621f78257)
+> 可以通过Notion复制数据库页面[HERE](https://alphaboom.notion.site/Database-c0477472d548448183fe33a621f78257)
 
-将赛马娘相关数据在Notion上同步保存一份，方便在Notion文章中快速关联技能、人物、支援卡等。例如准备大赛马时，可以快速标记需要的技能或支援卡配置信息等。
+使用数据库的效果展示如下：
+![](https://res.cloudinary.com/djdwogbsk/image/upload/v1682800233/l6jug6vqjkvhemgwwphv.png)
 
-![](https://res.cloudinary.com/djdwogbsk/image/upload/v1680314691/image_3_orjdto.png)
+### 如何在Notion中实现以上效果
+可以参看这个内容：[使用数据库优化赛马娘文章内容展示](https://notion.alphaboom.cn/article/20230430)
 
 ## 使用说明
 
