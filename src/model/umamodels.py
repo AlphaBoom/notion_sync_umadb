@@ -54,6 +54,39 @@ class SkillType(Enum):
     ChallengeMatchBonusStatus = 502
     ChallengeMatchBonusMotivation = 503
 
+class SkillValueType(Enum):
+    Direct = 1
+    MultiplySkillNum = 2
+    MultiplyTeamTotalSpeed = 3
+    MultiplyTeamTotalStamina = 4
+    MultiplyTeamTotalPower = 5
+    MultiplyTeamTotalGuts = 6
+    MultiplyTeamTotalWiz = 7
+    MultiplyRandom1 = 8
+    MultiplyRandom2 = 9
+    MultiplySingleModeWinCount = 10
+    MultiplyFanCount = 12
+    MultiplyMaximumRawStatus = 13
+    MultiplyActivateSpecificTagSkillCount = 14
+    MultiplyActivateHealSkillCount = 15
+    MultiplyFinalCornerEndOrder = 16
+    MultiplyInvTeamMemberCount = 17
+    MultiplyBaseWiz = 18
+    AddDistanceDiffTop = 19
+    MultiplyBlockedSideMaxContinueTimePhaseMiddleRun1 = 20
+    MultiplyBlockedSideMaxContinueTimePhaseMiddleRun2 = 21
+
+class SkillTimeType(Enum):
+    UNKNOWN = 0
+    Direct = 1
+    MultiplyDistanceDiffTop = 2
+    MultiplyRemainHp1 = 3
+    IncrementOrderUp = 4
+    MultiplyBlockedSideMaxContinueTimePhaseMiddleRun1 = 5
+    MultiplyBlockedSideMaxContinueTimePhaseMiddleRun2 = 6
+    MultiplyRemainHp2 = 7
+
+
 class SkillRarity(Enum):
     Normal = 1
     Rare = 2
@@ -139,6 +172,7 @@ class Skill:
     rarity: SkillRarity
     dataList: List[SkillData]
     original_name:str = None
+    unique_skill_ids:list[str] = None
 
 
 @dataclass

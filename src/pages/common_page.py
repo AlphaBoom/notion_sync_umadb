@@ -146,4 +146,6 @@ class DetailPage:
                         if rich_text[i].text and rich_text_new[i].text and rich_text[i].text.content != rich_text_new[i].text.content:
                             return False
                     return True
+                else:
+                    return False
         return True

@@ -272,7 +272,12 @@ class Umadb:
                     rarity = SkillRarity.Upgrade
                 else:
                     rarity = SkillRarity.Normal
-                yield Skill(str(row[2]), row[0], description, str(row[-7]), str(row[4]), rarity, skillDataList)
+                skill = Skill(str(row[2]), row[0], description, str(row[-7]), str(row[4]), rarity, skillDataList)
+                if row[10] > 0:
+                    skill.unique_skill_ids = [row[10]]
+                    if row[11] > 0:
+                        skill.unique_skill_ids.append(row[11])
+                yield skill
 
     def get_all_character_card_data(self) -> list[CharacterCard]:
         text_dict = self._get_all_text_data()

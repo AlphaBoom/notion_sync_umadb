@@ -4,7 +4,7 @@ import getopt
 import sys
 from typing import Callable
 
-from src.sync_client import SyncClient
+from src.sync_client import SyncClient, SKILL_FAILED_PERSIST_PATH, CHARA_FAILED_PERSIST_PATH, SUPPORT_CARD_FAILED_PERSIST_PATH
 from src.config import Properties
 
 def get_mapping(file, fallback:Callable):
@@ -126,8 +126,8 @@ if __name__ == '__main__':
                                            support_card_cover_mapping=get_mapping(support_card_cover_mapping_file, source.generate_support_card_cover_mapping))
     root_page_id = os.getenv("ROOT_PAGE_ID")
     if skill_database_title:
-        client.start_skill_data_sync(skill_database_title,root_page_id, thread_count=skill_sync_thread_count)
+        client.start_skill_data_sync(skill_database_title,root_page_id, thread_count=skill_sync_thread_count, persist_file_path=SKILL_FAILED_PERSIST_PATH)
     if chara_database_title:
-        client.start_character_card_data_sync(chara_database_title,root_page_id, thread_count=chara_sync_thread_count)
+        client.start_character_card_data_sync(chara_database_title,root_page_id, thread_count=chara_sync_thread_count, persist_file_path=CHARA_FAILED_PERSIST_PATH)
     if support_card_database_title:
-        client.start_support_card_data_sync(support_card_database_title,root_page_id, thread_count=support_card_sync_thread_count)
+        client.start_support_card_data_sync(support_card_database_title,root_page_id, thread_count=support_card_sync_thread_count, persist_file_path=SUPPORT_CARD_FAILED_PERSIST_PATH)

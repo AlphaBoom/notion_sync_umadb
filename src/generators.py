@@ -51,9 +51,13 @@ class LocalSourceGenerator(SourceGenerator):
 
     def get_all_skill(self) -> list[Skill]:
         skill_list = list(self.db.get_all_skill_data())
-        for skill in skill_list:
+        def convert(skill:Skill):
             skill.original_name = skill.name
-        return [self.translator.translate_skill(skill) for skill in skill_list]
+            new_skill =  self.translator.translate_skill(skill)
+            if new_skill.unique_skill_ids:
+                new_skill.name = new_skill.name + "（继承）"
+            return new_skill
+        return list(map(convert, skill_list))
 
     def get_all_character_card(self) -> list[CharacterCard]:
         card_list = self.db.get_all_character_card_data()

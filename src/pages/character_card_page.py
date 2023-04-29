@@ -272,19 +272,30 @@ class CharacterCardDetailPage(DetailPage):
         if not card.rairty_skill_set:
             ret.append(Block(divider={}))
             return ret
-        skill_id = list(card.rairty_skill_set.values())[0][0]
-        page_id = self._getSkillPageId(skill_id, skill_page_mapping, mismatch)
-        if page_id == None:
-            if skill_id in self.local_skill_info:
-                print(f"Skill {skill_id} not found from cloud, using local skill info")
-                skill = self.local_skill_info[skill_id]
-                ret.append(Block(paragraph=Paragraph(
-                    rich_text=[RichText(text=Text(skill.name))])))
+        flag0 = False
+        flag1 = False
+        for rank in card.rairty_skill_set.keys():
+            if rank >= 3:
+                if flag1:
+                    continue
+                flag1 = True
             else:
-                print(f"Skill {skill_id} not found ,neither local and cloud ")
-        else:
-            ret.append(Block(paragraph=Paragraph(rich_text=[RichText(
-                type=RichTextType.mention, mention=Mention(type=MentionType.page, page=MentionPage(id=page_id)))])))
+                if flag0:
+                    continue
+                flag0 = True
+            skill_id = card.rairty_skill_set[rank][0]
+            page_id = self._getSkillPageId(skill_id, skill_page_mapping, mismatch)
+            if page_id == None:
+                if skill_id in self.local_skill_info:
+                    print(f"Skill {skill_id} not found from cloud, using local skill info")
+                    skill = self.local_skill_info[skill_id]
+                    ret.append(Block(paragraph=Paragraph(
+                        rich_text=[RichText(text=Text(skill.name))])))
+                else:
+                    print(f"Skill {skill_id} not found ,neither local and cloud ")
+            else:
+                ret.append(Block(paragraph=Paragraph(rich_text=[RichText(
+                    type=RichTextType.mention, mention=Mention(type=MentionType.page, page=MentionPage(id=page_id)))])))
         ret.append(Block(divider={}))
         return ret
 

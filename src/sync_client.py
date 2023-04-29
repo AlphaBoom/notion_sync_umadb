@@ -3,6 +3,7 @@ from typing import Callable
 from concurrent.futures import ThreadPoolExecutor
 import threading
 from enum import Enum
+import os
 
 from src.config import Properties
 from src.model import *
@@ -15,6 +16,10 @@ from src.generators import SourceGenerator
 
 _DEFAULT_MODE = "insert"
 _FULL_UPDATE_MODE = "full"
+
+SKILL_FAILED_PERSIST_PATH = "skill_failed_persist.txt"
+CHARA_FAILED_PERSIST_PATH = "chara_failed_persist.txt"
+SUPPORT_CARD_FAILED_PERSIST_PATH = "support_card_failed_persist.txt"
 
 class SyncType(Enum):
     skill = 1
@@ -100,24 +105,37 @@ class SyncClient:
         if failed_count > 0 and self.failed_retry_count < 2:
             self.failed_retry_count += 1
             print(f"have {failed_count} failed pages, retry {self.failed_retry_count} times")
-            func(*args)
+            try:
+                func(*args)
+            except Exception as e:
+                print(f"retry failed: {e}")
+                self._retry_check(failed_count, func, *args)
         else:
             self.failed_retry_count = 0
     
-    def _update_precheck(self, in_cloud_list)->list:
+    def _update_precheck(self, in_cloud_list, persist_file_path=None)->list:
+        if persist_file_path:
+            stored_list = read_id_list(persist_file_path)
+            if stored_list:
+                self.failed_update_id_set = set(stored_list)
         if self.failed_update_id_set:
             return list(filter(lambda resource: resource[0].id in self.failed_update_id_set, in_cloud_list))
         else:
             return in_cloud_list
 
-    def _update_postcheck(self, update_failed_id_set):
+    def _update_postcheck(self, update_failed_id_set , persist_file_path=None):
         if update_failed_id_set:
             print(f"Failed to update {len(update_failed_id_set)} pages")
-            self.failed_update_id_set.update(update_failed_id_set)
+            self.failed_update_id_set = update_failed_id_set
+            if persist_file_path:
+                write_id_list(persist_file_path, self.failed_update_id_set)
         else:
             self.failed_update_id_set.clear()
+            if persist_file_path:
+                if os.path.exists(persist_file_path):
+                    os.remove(persist_file_path)
 
-    def _update_skill_database(self, database_id, skill_list: list[Skill], thread_count, attentive_check) -> None:
+    def _update_skill_database(self, database_id, skill_list: list[Skill], thread_count, attentive_check, persist_file_path=None) -> None:
         # check update info
         record_file_path = f"{SyncType.skill.name}_update_{database_id}.record"
         database_page = SkillDatabasePage()
@@ -162,12 +180,12 @@ class SyncClient:
         if self.update_mode == _FULL_UPDATE_MODE and in_cloud_list:
             # update existed page
             print("update existed skill page...")
-            in_cloud_list = self._update_precheck(in_cloud_list)
+            in_cloud_list = self._update_precheck(in_cloud_list, persist_file_path)
             self._run_in_multi_thread(thread_count, len(in_cloud_list), lambda: None, detail_page.updatePageInDatabase, lambda i: (in_cloud_list[i][1], in_cloud_list[i][0]))
-            self._update_postcheck(detail_page.failed_update_id_set)
+            self._update_postcheck(detail_page.failed_update_id_set, persist_file_path=SKILL_FAILED_PERSIST_PATH)
         self._retry_check(detail_page.failed_count, self._update_skill_database, database_id, skill_list, thread_count, attentive_check)
 
-    def start_skill_data_sync(self, database_title, root_page_id, thread_count=1, attentive_check=False):
+    def start_skill_data_sync(self, database_title, root_page_id, thread_count=1, attentive_check=False, persist_file_path=None):
         """
         === Parameters ===
         param database_title: title of the database
@@ -178,7 +196,7 @@ class SyncClient:
         print("start sync skill data...")
         database_id = self._ensure_notion_database_exists(root_page_id, database_title, SyncType.skill)
         skill_list = self._load_local_skill_list()
-        self._update_skill_database(database_id, skill_list, thread_count, attentive_check)
+        self._update_skill_database(database_id, skill_list, thread_count, attentive_check, persist_file_path)
     
     def _load_local_character_card_list(self) -> list[CharacterCard]:
         return self.source.get_all_character_card()
@@ -208,7 +226,7 @@ class SyncClient:
         self._skill_page_mapping = (skill_page_mapping, mismatch_callback)
         return self._skill_page_mapping
 
-    def start_character_card_data_sync(self, database_title, root_page_id, thread_count=1):
+    def start_character_card_data_sync(self, database_title, root_page_id, thread_count=1, persist_file_path=None):
         """
         === Parameters ===
         param database_title: title of the database
@@ -234,15 +252,15 @@ class SyncClient:
         if self.update_mode == _FULL_UPDATE_MODE and in_cloud_list:
             # update existed page
             print("update existed chara page...")
-            in_cloud_list = self._update_precheck(in_cloud_list)
+            in_cloud_list = self._update_precheck(in_cloud_list, persist_file_path)
             self._run_in_multi_thread(thread_count, len(in_cloud_list), lambda: None, detail_page.updatePageInDatabase, lambda i: (in_cloud_list[i][1], in_cloud_list[i][0],skill_page_mapping, mismatch_callback))
-            self._update_postcheck(detail_page.failed_update_id_set)
+            self._update_postcheck(detail_page.failed_update_id_set, persist_file_path=CHARA_FAILED_PERSIST_PATH)
         self._retry_check(detail_page.failed_count, self.start_character_card_data_sync, database_title, root_page_id, thread_count)
     
     def _load_local_support_card_list(self) -> list[SupportCard]:
         return self.source.get_all_support_card()
     
-    def start_support_card_data_sync(self, database_title, root_page_id, thread_count=1):
+    def start_support_card_data_sync(self, database_title, root_page_id, thread_count=1, persist_file_path=None):
         """
         === Parameters ===
         param database_title: title of the database
@@ -266,7 +284,7 @@ class SyncClient:
         if self.update_mode == _FULL_UPDATE_MODE and in_cloud_list:
             # update existed page
             print("update existed support card page...")
-            in_cloud_list = self._update_precheck(in_cloud_list)
+            in_cloud_list = self._update_precheck(in_cloud_list, persist_file_path)
             self._run_in_multi_thread(thread_count, len(in_cloud_list), lambda: None, detail_page.updatePageInDatabase, lambda i: (in_cloud_list[i][1], in_cloud_list[i][0],skill_page_mapping, mismatch_callback))
-            self._update_postcheck(detail_page.failed_update_id_set)
+            self._update_postcheck(detail_page.failed_update_id_set, persist_file_path=SUPPORT_CARD_FAILED_PERSIST_PATH)
         self._retry_check(detail_page.failed_count, self.start_support_card_data_sync, database_title, root_page_id, thread_count)

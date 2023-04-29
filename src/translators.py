@@ -89,6 +89,8 @@ class TrainersLegendTranslator(Translator):
         if category in self.translate_mapping:
             if index in self.translate_mapping[category]:
                 return self.translate_mapping[category][index]
+            else:
+                return text
         else:
             return text
     
