@@ -1,4 +1,5 @@
 from src.pages.common_page import *
+from src.utils.support_card_helper import parseEffectRow,parseUniqueEffectRow,effectTypeToStr
 
 _rarity_name_mapping = {
     SupportCardRarity.R: "R",
@@ -18,12 +19,13 @@ _card_type_name_mapping = {
 
 class SupportCardDatabasePage(DatabasePage):
 
-    def createPropertiesForPage(support_card_id, support_card_name, support_card_rarity: SupportCardRarity, support_card_type: SupportCardType):
+    def createPropertiesForPage(support_card_id, support_card_name, support_card_rarity: SupportCardRarity, support_card_type: SupportCardType, race_status_up:int):
         return {
             "支援卡名称": Property(title=[RichText(text=Text(support_card_name))]),
             "支援卡稀有度": Property(select=SelectOptions(name=_rarity_name_mapping[support_card_rarity])),
             "支援卡类型": Property(select=SelectOptions(name=_card_type_name_mapping[support_card_type])),
             "id": Property(rich_text=[RichText(text=Text(content=support_card_id))]),
+            "赛后加成": Property(number=race_status_up),
         }
 
     def __init__(self) -> None:
@@ -55,6 +57,7 @@ class SupportCardDatabasePage(DatabasePage):
                     name=_card_type_name_mapping[SupportCardType.Team], color=ColorType.purple),
             ])),
             "id": Property(rich_text={}),
+            "赛后加成": Property(number=PropertyNumber(NumberFormat.number)),
         }
 
     def createDatabase(self, database_name, parent_page_id: str) -> Database:
@@ -83,6 +86,18 @@ class SupportCardDatabasePage(DatabasePage):
         return (new_card_list, in_cloud_list)
 
 
+def _totalRaceStatusUp(card: SupportCard):
+    ret = 0
+    if card.unique_effect:
+        _,effects,_ = parseUniqueEffectRow(card.unique_effect)
+        if effects:
+            for effect in effects:
+                if effect.type == SupportCardEffectType.RaceStatusUp:
+                    ret += effect.value
+    if SupportCardEffectType.RaceStatusUp in card.effect_row_dict:
+        ret += parseEffectRow(card.effect_row_dict[SupportCardEffectType.RaceStatusUp])[-1]
+    return ret
+
 class SupportCardDetailPage(DetailPage):
 
     def __init__(self, cover_mapping=None, icon_mapping=None) -> None:
@@ -100,7 +115,7 @@ class SupportCardDetailPage(DetailPage):
                 parent=Parent(type=ParentType.DATABASE,
                               database_id=database_id),
                 properties=SupportCardDatabasePage.createPropertiesForPage(
-                    card.id, card.name, card.rarity, card.type),
+                    card.id, card.name, card.rarity, card.type, _totalRaceStatusUp(card)),
                 children=children_list,
                 icon=icon_file,
                 cover=cover_file,
@@ -114,7 +129,7 @@ class SupportCardDetailPage(DetailPage):
             icon_file = self.getFileInMapping(card.id, self.icon_mapping)
             cover_file = self.getFileInMapping(card.id, self.cover_mapping)
             properties = SupportCardDatabasePage.createPropertiesForPage(
-                    card.id, card.name, card.rarity, card.type)
+                    card.id, card.name, card.rarity, card.type, _totalRaceStatusUp(card))
             children_list = self._createPageDetail(card, skill_page_mapping, mismatch)
             self.updatePageAndBlocks(properties, page, children_list, icon_file, cover_file)
         except Exception as e:
@@ -146,7 +161,7 @@ class SupportCardDetailPage(DetailPage):
 
     def _createEventSkillList(self, card: SupportCard, skill_page_mapping, mismatch) -> list[Block]:
         ret = [Block(heading_2=Heading2(
-            rich_text=[RichText(text=Text(content="事件取得技能"))]))]
+            rich_text=[RichText(text=Text(content="事件可取得技能"))]))]
         if card.event_skill_list:
             for skill_id in card.event_skill_list:
                 page_id = self._getSkillPageId(
@@ -159,7 +174,7 @@ class SupportCardDetailPage(DetailPage):
 
     def _createTrainSkillList(self, card: SupportCard, skill_page_mapping, mismatch) -> list[Block]:
         ret = [Block(heading_2=Heading2(
-            rich_text=[RichText(text=Text(content="训练取得技能"))]))]
+            rich_text=[RichText(text=Text(content="训练可取得技能"))]))]
         if card.train_skill_list:
             for skill_id in card.train_skill_list:
                 page_id = self._getSkillPageId(
@@ -175,10 +190,36 @@ class SupportCardDetailPage(DetailPage):
         ret = [Block(heading_2=Heading2(
             rich_text=[RichText(text=Text(content="基础效果信息"))]))]
         if card.unique_effect:
-            # appedn unique effect block
-            pass
-        if card.effect_table_set:
+            des, _, level = parseUniqueEffectRow(card.unique_effect)
+            ret += [
+                Block(heading_3=Heading3(rich_text=[RichText(text=Text(content=f"固有效果描述({level})"))])),
+                Block(paragraph=Paragraph(rich_text=[RichText(text=Text(content=des))])),
+                Block(paragraph=Paragraph(rich_text=[RichText(text=Text(content=""))])),
+            ]
+        if card.effect_row_dict:
             # append common effect block
-            pass
+            if card.rarity == SupportCardRarity.R:
+                top = 9
+            elif card.rarity == SupportCardRarity.SR:
+                top = 10
+            else:
+                top = 11
+            column_count = 6
+            header_row = ["效果类型"]
+            for i in range(top-5, top):
+                header_row.append(f"Lv{i*5}")
+            rows = [header_row]
+            for effect_type, effect_row in card.effect_row_dict.items():
+                row = [effectTypeToStr(effect_type)]
+                parsed_effect_row = parseEffectRow(effect_row)
+                for i in range(top-5, top):
+                    row.append(str(parsed_effect_row[i]))
+                rows.append(row)
+            table_rows = []
+            for row in rows:
+                block = Block(table_row=TableRow(cells=[[RichText(text=Text(content=cell))]for cell in row]))
+                table_rows.append(block)
+            ret.append(Block(table=Table(table_width=column_count, has_column_header=True,
+                                          has_row_header=True, children=table_rows)))
         return ret
         

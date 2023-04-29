@@ -6,8 +6,8 @@ from collections import namedtuple
 Talent = namedtuple('Talent', 'speed stamina power guts wiz')
 Proper = namedtuple('Proper', 'short mile middle long nige senko sashi oikomi turf dirt')
 Status = namedtuple('Status', 'speed stamina power guts wiz')
-EffectTable = namedtuple('EffectTable', 'init limit_lv5 limit_lv10 limit_lv15 limit_lv20 limit_lv30 limit_lv35 limit_lv40 limit_lv45 limit_lv50')
-UniqueEffect = namedtuple('UniqueEffect', 'lv type_0 value_0 value_0_1 value_0_2 value_0_3 value_0_4 type_1 value_1 value_1_1 value_1_2 value_1_3 value_1_4')
+EffectRow = namedtuple('EffectRow', 'init limit_lv5 limit_lv10 limit_lv15 limit_lv20 limit_lv25 limit_lv30 limit_lv35 limit_lv40 limit_lv45 limit_lv50')
+UniqueEffectRow = namedtuple('UniqueEffectRow', 'lv type_0 value_0 value_0_1 value_0_2 value_0_3 value_0_4 type_1 value_1 value_1_1 value_1_2 value_1_3 value_1_4')
 
 
 class SkillType(Enum):
@@ -190,6 +190,11 @@ class CharacterCard:
 
 
 @dataclass
+class SupportCardEffect:
+    type: SupportCardEffectType
+    value: int
+
+@dataclass
 class SupportCard:
     id: str
     name: str
@@ -197,6 +202,6 @@ class SupportCard:
     type:SupportCardType
     event_skill_list:list[str] = None
     train_skill_list:list[str] = None
-    unique_effect:UniqueEffect = None
-    effect_table_set:dict[SupportCardEffectType, EffectTable] = None
+    unique_effect:UniqueEffectRow = None
+    effect_row_dict:dict[SupportCardEffectType, EffectRow] = None
     original_name:str = None

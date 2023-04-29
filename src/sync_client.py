@@ -17,9 +17,9 @@ from src.generators import SourceGenerator
 _DEFAULT_MODE = "insert"
 _FULL_UPDATE_MODE = "full"
 
-SKILL_FAILED_PERSIST_PATH = "skill_failed_persist.txt"
-CHARA_FAILED_PERSIST_PATH = "chara_failed_persist.txt"
-SUPPORT_CARD_FAILED_PERSIST_PATH = "support_card_failed_persist.txt"
+SKILL_FAILED_PERSIST_PATH = "skill_failed_persist.record"
+CHARA_FAILED_PERSIST_PATH = "chara_failed_persist.record"
+SUPPORT_CARD_FAILED_PERSIST_PATH = "support_card_failed_persist.record"
 
 class SyncType(Enum):
     skill = 1

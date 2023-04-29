@@ -27,7 +27,10 @@ class TestUmadb(unittest.TestCase):
         self.assertIsInstance(card.id, str, "card id should be string")
         self.assertIsInstance(card.name, str, "card name should be string")
         self.assertIsInstance(card.bg_id, str, "card bg_id should be string")
-
+    
+    def test_support_card_type(self):
+        card: SupportCard = self.db.get_all_support_card_data()[0]
+        self.assertIsInstance(card.id, str, "card id should be string")
 
 if __name__ == '__main__':
     unittest.main()
