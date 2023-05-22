@@ -13,7 +13,7 @@ def get_last_commit_time_from_github(owner, repo, path):
     r = requests.get(url)
     if r.ok:
         date_str = r.json()[0]["commit"]["committer"]["date"]
-        return int(time.mktime(datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ").timetuple()))
+        return int(time.mktime(datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ").timetuple()) - time.timezone)
     return -1
 
 
@@ -28,6 +28,8 @@ def download_file_from_github(owner, repo, branch, path, dst):
         with open(dst, 'wb') as f:
             f.write(r.content)
         return True
+    else:
+        print(f"download {url} failed: {r.status_code}")
 
 
 def get_json_from_github_file(properties: Properties, local_file, owner, repo, branch, path):

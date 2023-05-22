@@ -171,7 +171,7 @@ class Table(Mixin):
     table_width:int
     has_column_header:bool
     has_row_header:bool
-    children:list['Block'] = None
+    children:Optional[list['Block']] = None
 
 @dataclass
 class TableRow(Mixin):

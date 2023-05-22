@@ -173,6 +173,7 @@ class Skill:
     dataList: List[SkillData]
     original_name:str = None
     unique_skill_ids:list[str] = None
+    is_translated:bool = False
 
 
 @dataclass
@@ -187,6 +188,7 @@ class CharacterCard:
     upgrade_skill_set: dict[int, List[str]] = field(default_factory=dict)
     rairty_skill_set: dict[int,List[str]] = field(default_factory=dict)
     original_name:str = None
+    is_translated:bool = False
 
 
 @dataclass
@@ -205,3 +207,4 @@ class SupportCard:
     unique_effect:UniqueEffectRow = None
     effect_row_dict:dict[SupportCardEffectType, EffectRow] = None
     original_name:str = None
+    is_translated:bool = False

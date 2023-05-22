@@ -36,6 +36,10 @@ class UraraWinTranslator(Translator):
             return None
         self._ensure_translate_mapping()
         return self.translate_mapping.get(text, text)
+
+    def _has_translate(self, text):
+        self._ensure_translate_mapping()
+        return text in self.translate_mapping
     
     def _extract_name(self, name: str):
         if name.startswith('['):
@@ -47,6 +51,7 @@ class UraraWinTranslator(Translator):
     def translate_skill(self, skill:Skill) -> Skill:
         skill.name = self._translate(skill.name)
         skill.description = self._translate(skill.description)
+        skill.is_translated = self._has_translate(skill.name)
         return skill
     
     def translate_chara_card(self, chara_card:CharacterCard) -> CharacterCard:
@@ -57,6 +62,7 @@ class UraraWinTranslator(Translator):
             chara_card.name = f"[{nick_name}]{real_name}"
         else:
             chara_card.name = real_name
+        chara_card.is_translated = self._has_translate(chara_card.name)
         return chara_card
     
     def translate_support_card(self, support_card:SupportCard) -> SupportCard:
@@ -67,6 +73,7 @@ class UraraWinTranslator(Translator):
             support_card.name = f"[{nick_name}]{real_name}"
         else:
             support_card.name = real_name
+        support_card.is_translated = self._has_translate(support_card.name)
         return support_card
     
 class TrainersLegendTranslator(Translator):
@@ -94,15 +101,28 @@ class TrainersLegendTranslator(Translator):
         else:
             return text
     
+    def _has_translate(self, category, index):
+        self._ensure_translate_mapping()
+        if category in self.translate_mapping:
+            if index in self.translate_mapping[category]:
+                return True
+            else:
+                return False
+        else:
+            return False
+    
     def translate_skill(self, skill:Skill) -> Skill:
         skill.name = self._translate(skill.name, "47", skill.id)
         skill.description = self._translate(skill.description, "48", skill.id)
+        skill.is_translated = self._has_translate("47", skill.id)
         return skill
     
     def translate_chara_card(self, chara_card:CharacterCard) -> CharacterCard:
         chara_card.name = self._translate(chara_card.name, "4", chara_card.id)
+        chara_card.is_translated = self._has_translate("4", chara_card.id)
         return chara_card
     
     def translate_support_card(self, support_card:SupportCard) -> SupportCard:
         support_card.name = self._translate(support_card.name, "75", support_card.id)
+        support_card.is_translated = self._has_translate("75", support_card.id)
         return support_card

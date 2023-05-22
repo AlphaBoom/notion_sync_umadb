@@ -7,8 +7,8 @@ import os
 
 from src.config import Properties
 from src.model import *
-from src.notion import Database
-from src.pages.skill_page import SkillDatabasePage, SkillDetailPage
+from src.notion import Database,Page
+from src.pages.skill_page import SkillDatabasePage, SkillDetailPage, DatabasePage
 from src.pages.character_card_page import CharacterCardDatabasePage, CharacterCardDetailPage
 from src.pages.support_card_page import SupportCardDatabasePage,SupportCardDetailPage
 from src.utils.file_utils import read_id_list, write_id_list
@@ -16,6 +16,7 @@ from src.generators import SourceGenerator
 
 _DEFAULT_MODE = "insert"
 _FULL_UPDATE_MODE = "full"
+_TRANSLATE_ONLY_MODE = "translate_only"
 
 SKILL_FAILED_PERSIST_PATH = "skill_failed_persist.record"
 CHARA_FAILED_PERSIST_PATH = "chara_failed_persist.record"
@@ -80,7 +81,7 @@ class SyncClient:
     def _ensure_notion_database_exists(self, parent_page_id, title, type:SyncType) -> str:
         id = self.p.read_database_id(type.name)
         if id:
-            if self.update_mode == _FULL_UPDATE_MODE:
+            if self.update_mode in (_FULL_UPDATE_MODE, _TRANSLATE_ONLY_MODE):
                 _update_database(type, title, id)
             return id
         else:
@@ -134,6 +135,9 @@ class SyncClient:
             if persist_file_path:
                 if os.path.exists(persist_file_path):
                     os.remove(persist_file_path)
+    
+    def _filter_not_translated(self, in_cloud_list:list[tuple[any, Page]]) -> list:
+        return list(filter(lambda resource: not DatabasePage.isPageTranslated(resource[1]), in_cloud_list))
 
     def _update_skill_database(self, database_id, skill_list: list[Skill], thread_count, attentive_check, persist_file_path=None) -> None:
         # check update info
@@ -144,7 +148,7 @@ class SyncClient:
         for skill, page in in_cloud_list:
             record_set.add(skill.id)
         new_skill_list = list(filter(lambda skill: skill.id not in record_set, new_skill_list))
-        detail_page = SkillDetailPage(self.skill_icon_mapping)
+        detail_page = SkillDetailPage(self.skill_icon_mapping, update_block=self.update_mode != _TRANSLATE_ONLY_MODE)
         def end_callback():
             if detail_page.failed_count > 0:
                 print(f"Failed to create {detail_page.failed_count} pages")
@@ -177,9 +181,11 @@ class SyncClient:
             self._run_in_multi_thread(thread_count, len(new_skill_list), end_callback, detail_page.createPageInDatabase, lambda i: (database_id, new_skill_list[i]))
         elif self.update_mode == _DEFAULT_MODE:
             print("no skill need to update, skip")
-        if self.update_mode == _FULL_UPDATE_MODE and in_cloud_list:
+        if self.update_mode in (_FULL_UPDATE_MODE,_TRANSLATE_ONLY_MODE) and in_cloud_list:
             # update existed page
             print("update existed skill page...")
+            if self.update_mode == _TRANSLATE_ONLY_MODE:
+                in_cloud_list = self._filter_not_translated(in_cloud_list)
             in_cloud_list = self._update_precheck(in_cloud_list, persist_file_path)
             self._run_in_multi_thread(thread_count, len(in_cloud_list), lambda: None, detail_page.updatePageInDatabase, lambda i: (in_cloud_list[i][1], in_cloud_list[i][0]))
             self._update_postcheck(detail_page.failed_update_id_set, persist_file_path=SKILL_FAILED_PERSIST_PATH)
@@ -242,16 +248,18 @@ class SyncClient:
         skill_page_mapping, mismatch_callback = self._generate_local_skill_mapping()
         local_skill_list = self._load_local_skill_list()
         local_skill_mapping = {skill.id : skill for skill in local_skill_list}
-        detail_page = CharacterCardDetailPage(self.chara_cover_mapping, self.chara_icon_mapping, local_skill_mapping)
+        detail_page = CharacterCardDetailPage(self.chara_cover_mapping, self.chara_icon_mapping, local_skill_mapping, update_block=self.update_mode != _TRANSLATE_ONLY_MODE)
         def end_callback():
             if detail_page.failed_count > 0:
                 print(f"Failed to create {detail_page.failed_count} pages")
         if card_list:
             self._run_in_multi_thread(thread_count, len(card_list), end_callback, detail_page.createPageInDatabase, 
                                   lambda i: (database_id, card_list[i], skill_page_mapping, mismatch_callback))
-        if self.update_mode == _FULL_UPDATE_MODE and in_cloud_list:
+        if self.update_mode in (_FULL_UPDATE_MODE,_TRANSLATE_ONLY_MODE) and in_cloud_list:
             # update existed page
             print("update existed chara page...")
+            if self.update_mode == _TRANSLATE_ONLY_MODE:
+                in_cloud_list = self._filter_not_translated(in_cloud_list)
             in_cloud_list = self._update_precheck(in_cloud_list, persist_file_path)
             self._run_in_multi_thread(thread_count, len(in_cloud_list), lambda: None, detail_page.updatePageInDatabase, lambda i: (in_cloud_list[i][1], in_cloud_list[i][0],skill_page_mapping, mismatch_callback))
             self._update_postcheck(detail_page.failed_update_id_set, persist_file_path=CHARA_FAILED_PERSIST_PATH)
@@ -274,16 +282,18 @@ class SyncClient:
             print("No support card require update, skip.")
             return
         skill_page_mapping, mismatch_callback = self._generate_local_skill_mapping()
-        detail_page = SupportCardDetailPage(self.support_card_cover_mapping, self.support_card_icon_mapping)
+        detail_page = SupportCardDetailPage(self.support_card_cover_mapping, self.support_card_icon_mapping, update_block=self.update_mode != _TRANSLATE_ONLY_MODE)
         def end_callback():
             if detail_page.failed_count > 0:
                 print(f"Failed to create {detail_page.failed_count} pages")
         if card_list:
             self._run_in_multi_thread(thread_count, len(card_list), end_callback, detail_page.createPageInDatabase, 
                                   lambda i: (database_id, card_list[i], skill_page_mapping, mismatch_callback))
-        if self.update_mode == _FULL_UPDATE_MODE and in_cloud_list:
+        if self.update_mode in (_FULL_UPDATE_MODE,_TRANSLATE_ONLY_MODE)  and in_cloud_list:
             # update existed page
             print("update existed support card page...")
+            if self.update_mode == _TRANSLATE_ONLY_MODE:
+                in_cloud_list = self._filter_not_translated(in_cloud_list)
             in_cloud_list = self._update_precheck(in_cloud_list, persist_file_path)
             self._run_in_multi_thread(thread_count, len(in_cloud_list), lambda: None, detail_page.updatePageInDatabase, lambda i: (in_cloud_list[i][1], in_cloud_list[i][0],skill_page_mapping, mismatch_callback))
             self._update_postcheck(detail_page.failed_update_id_set, persist_file_path=SUPPORT_CARD_FAILED_PERSIST_PATH)

@@ -47,7 +47,7 @@ class SkillDatabasePage(DatabasePage):
 
     def __init__(self) -> None:
         super().__init__()
-        self._properties = {
+        self.properties = {
             "技能名称": Property(title={}),
             "技能描述": Property(rich_text={}),
             "技能稀有度": Property(
@@ -90,7 +90,7 @@ class SkillDatabasePage(DatabasePage):
             UpdateDatabaseRequest(
                 database_id=database_id,
                 title=[RichText(text=Text(content=database_name))],
-                properties=self._properties,
+                properties=self.properties,
             )
         )
 
@@ -121,12 +121,13 @@ class SkillDatabasePage(DatabasePage):
         return CreateDatabaseRequest(
             parent=Parent(type=ParentType.PAGE, page_id=parent_page_id),
             title=[RichText(text=Text(content=database_name))],
-            properties=self._properties,
+            properties=self.properties,
         )
 
 
 class SkillDetailPage(DetailPage):
-    def __init__(self, skill_icon_mapping=None) -> None:
+    def __init__(self, skill_icon_mapping=None, update_block=True) -> None:
+        super().__init__(update_block=update_block)
         self.failed_count = 0
         self.failed_update_id_set = set()
         self.skill_icon_mapping = skill_icon_mapping
@@ -158,7 +159,7 @@ class SkillDetailPage(DetailPage):
             skill_cooldown = -1
             skill_type = "None"
             skill_value = "None"
-        return SkillDatabasePage.createPropertiesForPage(
+        properties =  SkillDatabasePage.createPropertiesForPage(
             skill.id,
             skill_name,
             skill_description,
@@ -169,6 +170,7 @@ class SkillDetailPage(DetailPage):
             skill_type,
             skill_value,
         )
+        return DatabasePage.attachTranslateProperty(properties, skill.is_translated)
 
     def createPageInDatabase(self, database_id, skill: Skill) -> None:
         try:

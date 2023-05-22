@@ -4,7 +4,8 @@ import os
 from src.notion.notion_obj import *
 from src.notion.notion_requests import *
 
-_BASE_URL = "https://api.notion.com/v1"
+def _baseUrl():
+    return f"{os.getenv('NOTION_PROXY_HOST_URL',default='https://api.notion.com')}/v1"
 
 def _headers():
     vars = globals()
@@ -77,7 +78,7 @@ def deleteBlock(block_id: str) -> None:
 
 
 def _get(path, params=None):
-    r = requests.get(_BASE_URL + "/" + path, params=params, headers=_headers(),timeout=10)
+    r = requests.get(_baseUrl() + "/" + path, params=params, headers=_headers(),timeout=10)
     if not r:
         print(r.text)
     r.raise_for_status()
@@ -85,7 +86,7 @@ def _get(path, params=None):
 
 
 def _post(path, data=None, json=None):
-    r = requests.post(_BASE_URL + "/" + path, data=data,
+    r = requests.post(_baseUrl() + "/" + path, data=data,
                       json=json, headers=_headers(), timeout=10)
     if not r:
         print(r.text)
@@ -93,14 +94,14 @@ def _post(path, data=None, json=None):
     return r
 
 def _patch(path, data=None, json=None):
-    r = requests.patch(_BASE_URL + "/" + path, data=data, json=json, headers=_headers(), timeout=10)
+    r = requests.patch(_baseUrl() + "/" + path, data=data, json=json, headers=_headers(), timeout=10)
     if not r:
         print(r.text)
     r.raise_for_status()
     return r
 
 def _delete(path):
-    r = requests.delete(_BASE_URL + "/" + path, headers=_headers(), timeout=10)
+    r = requests.delete(_baseUrl() + "/" + path, headers=_headers(), timeout=10)
     if not r:
         print(r.text)
     r.raise_for_status()

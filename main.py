@@ -25,6 +25,7 @@ def print_help():
       --update_mode <update_mode> The following update modes are supported:
         - insert (default): just insert new data to Notion database, do not update existing data.
         - full : update all data in Notion database.
+        - translate_only: just update the not yet translated data or insert new data that not existed in Notion.
       --skill_database_title <skill_database_title>
       --skill_sync_thread_count <skill_sync_thread_count>
       --skill_icon_mapping <skill_icon_mapping> 
@@ -38,7 +39,7 @@ def print_help():
       --support_card_cover_mapping <support_card_cover_mapping>
     """)
 available_generators = ("local","urarawin")
-available_update_modes = ("insert","full")
+available_update_modes = ("insert","full","translate_only")
 
 if __name__ == '__main__':
     try:
