@@ -1,5 +1,5 @@
 # Notion sync umadb
-Sync data from local Umamusume game data to Notion database. Facilitate pointing content to detailed data when writing articles, use offical Notion API.
+Sync data from local Umamusume game resources to Notion database. Facilitate pointing content to detailed data when writing articles, use offical Notion API.
 
 ## 介绍
 > 可以通过Notion复制数据库页面[HERE](https://alphaboom.notion.site/Database-c0477472d548448183fe33a621f78257)

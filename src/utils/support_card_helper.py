@@ -185,6 +185,7 @@ def parseUniqueEffectRow(row:UniqueEffectRow)->tuple[str, list[SupportCardEffect
             # zero check
             if params[index] == 0:
                 break
+            start_index = index
             effect_list, length, summary = _effectTypeExHandler(params, index)
             if effect_list:
                 effects += effect_list
@@ -196,4 +197,7 @@ def parseUniqueEffectRow(row:UniqueEffectRow)->tuple[str, list[SupportCardEffect
                 effects.append(effect)
                 ret_str += supportCardEffectToStr(effect)
             index += length
+            if start_index == index:
+                print(f"error in parse effect row: {params} {start_index} {index} skiped, maybe counter new effect type?")
+                break
     return ret_str, effects, level
