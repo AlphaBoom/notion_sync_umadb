@@ -102,6 +102,26 @@ class _SkillSet:
     skill_level9: int
     skill_id10: int
     skill_level10: int
+    skill_id11: int
+    skill_level11: int
+    skill_id12: int
+    skill_level12: int
+    skill_id13: int
+    skill_level13: int
+    skill_id14: int
+    skill_level14: int
+    skill_id15: int
+    skill_level15: int
+    skill_id16: int
+    skill_level16: int
+    skill_id17: int
+    skill_level17: int
+    skill_id18: int
+    skill_level18: int
+    skill_id19: int
+    skill_level19: int
+    skill_id20: int
+    skill_level20: int
 
 @dataclass
 class _AvailableSkillSet:

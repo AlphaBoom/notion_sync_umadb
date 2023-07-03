@@ -78,7 +78,7 @@ def deleteBlock(block_id: str) -> None:
 
 
 def _get(path, params=None):
-    r = requests.get(_baseUrl() + "/" + path, params=params, headers=_headers(),timeout=10)
+    r = requests.get(_baseUrl() + "/" + path, params=params, headers=_headers(),timeout=30)
     if not r:
         print(r.text)
     r.raise_for_status()
@@ -87,21 +87,21 @@ def _get(path, params=None):
 
 def _post(path, data=None, json=None):
     r = requests.post(_baseUrl() + "/" + path, data=data,
-                      json=json, headers=_headers(), timeout=10)
+                      json=json, headers=_headers(), timeout=30)
     if not r:
         print(r.text)
     r.raise_for_status()
     return r
 
 def _patch(path, data=None, json=None):
-    r = requests.patch(_baseUrl() + "/" + path, data=data, json=json, headers=_headers(), timeout=10)
+    r = requests.patch(_baseUrl() + "/" + path, data=data, json=json, headers=_headers(), timeout=30)
     if not r:
         print(r.text)
     r.raise_for_status()
     return r
 
 def _delete(path):
-    r = requests.delete(_baseUrl() + "/" + path, headers=_headers(), timeout=10)
+    r = requests.delete(_baseUrl() + "/" + path, headers=_headers(), timeout=30)
     if not r:
         print(r.text)
     r.raise_for_status()
