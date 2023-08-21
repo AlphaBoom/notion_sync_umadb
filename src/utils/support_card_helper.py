@@ -48,35 +48,35 @@ class MultiyEffectSummary(EffectSummary):
 _support_card_name_mapping = {
     SupportCardEffectType.SpecialTagEffectUp.value : "友情ボーナス",
     SupportCardEffectType.MotivationUp.value : "やる気効果アップ",
-    SupportCardEffectType.TrainningSpeedUp.value : "速度ボーナス",
-    SupportCardEffectType.TrainningStaminaUp.value : "持久力ボーナス",
+    SupportCardEffectType.TrainningSpeedUp.value : "スピードボーナス",
+    SupportCardEffectType.TrainningStaminaUp.value : "スタミナボーナス",
     SupportCardEffectType.TrainningPowerUp.value : "パワーボーナス",
     SupportCardEffectType.TrainningGutsUp.value : "根性ボーナス",
     SupportCardEffectType.TrainningWizUp.value : "賢さボーナス",
     SupportCardEffectType.TrainningEffectUp.value : "トレーニング効果アップ",
-    SupportCardEffectType.InitialSpeedUp.value : "初期速度アップ",
-    SupportCardEffectType.InitalStaminaUp.value : "初期持久力アップ",
+    SupportCardEffectType.InitialSpeedUp.value : "初期スピードアップ",
+    SupportCardEffectType.InitalStaminaUp.value : "初期スタミナアップ",
     SupportCardEffectType.InitialPowerUp.value : "初期パワーアップ",
     SupportCardEffectType.InitialGutsUp.value : "初期根性アップ",
     SupportCardEffectType.InitialWizUp.value : "初期賢さアップ",
     SupportCardEffectType.InitalEvaluationUp.value : "初期絆ゲージアップ",
-    SupportCardEffectType.SpeedLimitUp.value : "速度上限アップ",
-    SupportCardEffectType.StaminaLimitUp.value : "持久力上限アップ",
+    SupportCardEffectType.SpeedLimitUp.value : "スピード上限アップ",
+    SupportCardEffectType.StaminaLimitUp.value : "スタミナ上限アップ",
     SupportCardEffectType.PowerLimitUp.value : "パワー上限アップ",
     SupportCardEffectType.GutzLimitUp.value : "根性上限アップ",
     SupportCardEffectType.WizLimitUp.value : "賢さ上限アップ",
     SupportCardEffectType.EventRecoveryAmountUp.value : "イベント回復量アップ",
-    SupportCardEffectType.TrainningFailureRateDown.value : "トレーニング失敗率ダウン",
+    SupportCardEffectType.TrainningFailureRateDown.value : "失敗率ダウン",
     SupportCardEffectType.EventEffetcUp.value : "イベント効果アップ",
-    SupportCardEffectType.TrainningHPConsumptionDown.value : "トレーニングHP消費量ダウン",
+    SupportCardEffectType.TrainningHPConsumptionDown.value : "体力消費ダウン",
     SupportCardEffectType.MinigameEffectUP.value : "ミニゲーム効果アップ",
-    SupportCardEffectType.SkillPointBonus.value : "スキルポイントボーナス",
-    SupportCardEffectType.WizRecoverUp.value : "賢さ回復量アップ",
-    SupportCardEffectType.RaceStatusUp.value : "レースステータスアップ",
-    SupportCardEffectType.RaceFanUp.value : "レースファンアップ",
-    SupportCardEffectType.SkillTipsLvUp.value : "スキルチップレベルアップ",
-    SupportCardEffectType.SkillTipsEventRateUp.value : "スキルチップイベント発生率アップ",
-    SupportCardEffectType.GoodTrainingRateUp.value : "得意トレーニング発生率アップ",
+    SupportCardEffectType.SkillPointBonus.value : "スキルPtボーナス",
+    SupportCardEffectType.WizRecoverUp.value : "賢さ友情回復量アップ",
+    SupportCardEffectType.RaceStatusUp.value : "レースボーナス",
+    SupportCardEffectType.RaceFanUp.value : "ファン数ボーナス",
+    SupportCardEffectType.SkillTipsLvUp.value : "ヒントLvアップ",
+    SupportCardEffectType.SkillTipsEventRateUp.value : "ヒント発生率アップ",
+    SupportCardEffectType.GoodTrainingRateUp.value : "得意率アップ",
 }
 
 _support_card_ex_name_mapping = {
@@ -198,6 +198,6 @@ def parseUniqueEffectRow(row:UniqueEffectRow)->tuple[str, list[SupportCardEffect
                 ret_str += supportCardEffectToStr(effect)
             index += length
             if start_index == index:
-                print(f"error in parse effect row: {params} {start_index} {index} skiped, maybe counter new effect type?")
+                print(f"error in parse effect row: {params} {start_index} {index} skiped, maybe encounter new effect type?")
                 break
     return ret_str, effects, level

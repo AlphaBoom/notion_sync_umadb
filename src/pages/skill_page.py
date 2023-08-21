@@ -208,12 +208,12 @@ class SkillDetailPage(DetailPage):
     def _skillEffectTypeFormat(self, skill_type: int) -> str:
         if skill_type in self._skill_effect_type_mapping:
             return self._skill_effect_type_mapping[skill_type]
-        return skill_type
+        return f"unknown({skill_type})"
 
     def _skillEffectValueTypeFormat(self, value_type: int) -> str:
         if value_type in self._skill_effect_value_type_mapping:
             return self._skill_effect_value_type_mapping[value_type]
-        return value_type
+        return f"unknown({value_type})"
 
     def _skillEffectValueFormat(self, skill_type: int, value: int) -> str:
         _skill_type = SkillType(skill_type)

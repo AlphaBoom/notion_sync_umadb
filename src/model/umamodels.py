@@ -48,7 +48,7 @@ class SkillType(Enum):
     TargetLane = 35
     ActivateRandomNormalAndRareSkill = 36
     ActivateRandomRareSkill = 37
-    NOUSE_17 = 38
+    DebuffCancel = 38
     NOUSE_18 = 39
     ChallengeMatchBonus_Old = 501
     ChallengeMatchBonusStatus = 502
@@ -75,6 +75,10 @@ class SkillValueType(Enum):
     AddDistanceDiffTop = 19
     MultiplyBlockedSideMaxContinueTimePhaseMiddleRun1 = 20
     MultiplyBlockedSideMaxContinueTimePhaseMiddleRun2 = 21
+    MultiplySpeed1 = 22
+    MultiplySpeed2 = 23
+    MultiplyArcGlobalPotentialLevel = 24
+    MultiplyTopLeadAmount = 25
 
 class SkillTimeType(Enum):
     UNKNOWN = 0
