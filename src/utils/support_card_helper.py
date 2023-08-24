@@ -22,7 +22,7 @@ class EffectSummary:
             return self._params_formatter(self._params, self._summary)
         return self._summary
 
-    def generateEffect(self):
+    def generateEffect(self)->SupportCardEffect|list[SupportCardEffect]:
         return None
 
 class SingleTypeEffectSummary(EffectSummary):
@@ -92,6 +92,9 @@ def _getExEffectName(type:int)->str:
 def _getEffectName(type:int)->str:
     return _support_card_effect_name_mapping.get(type, "未知")
 
+# 这里有点乱，辅助记忆下：
+# 作用是将特殊固有效果转换为一个或多个普通效果，基于上述目的未完成内容有：
+# 105-115以及后续未定义的新类型
 _effectTypeExHandlers:dict[int,tuple[int,EffectSummary]] = {
     101: (2, EffectSummary("絆ゲージが{}以上の時", 
                                                lambda params, summary: summary.format(params[1]))),
