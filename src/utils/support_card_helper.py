@@ -3,7 +3,7 @@ from typing import Callable
 from src.model import *
 
 class EffectSummary:
-    def __init__(self, summary:str, params_formatter:Callable[[list[int]], str] = None):
+    def __init__(self, summary:str, params_formatter:Callable[[list[int], str], str] = None):
         self._summary = summary
         self._params = None
         self._params_formatter = params_formatter
@@ -27,7 +27,7 @@ class EffectSummary:
 
 class SingleTypeEffectSummary(EffectSummary):
 
-    def __init__(self, summary: str, value_index:int, effect_type:SupportCardEffectType, params_formatter: Callable[[list[int]], str] = None):
+    def __init__(self, summary: str, value_index:int, effect_type:SupportCardEffectType, params_formatter: Callable[[list[int], str], str] = None):
         super().__init__(summary, params_formatter)
         self._value_index = value_index
         self._effect_type = effect_type
@@ -36,7 +36,7 @@ class SingleTypeEffectSummary(EffectSummary):
         return SupportCardEffect(SupportCardEffectType(self._effect_type), self.params[self._value_index])
 
 class MultiyEffectSummary(EffectSummary):
-    def __init__(self, summary:str, type_index:int, value_index:int, multiply_index:int, params_formatter:Callable[[list[int]], str] = None):
+    def __init__(self, summary:str, type_index:int, value_index:int, multiply_index:int, params_formatter:Callable[[list[int], str], str] = None):
         super().__init__(summary, params_formatter=params_formatter)
         self._type_index = type_index
         self._value_index = value_index
@@ -107,14 +107,14 @@ _effectTypeExHandlers:dict[int,tuple[int,EffectSummary]] = {
                                                 lambda params, summary: summary.format(params[1], _getEffectName(params[2]), params[3]))),
     107: (6, EffectSummary("現在の体力が少ないほど、友情ボーナス")),
     108: (6, EffectSummary("体力最大値が高いほど、トレーニング効果アップ")),
-    109: (3, EffectSummary("編成したサポートカードの絆ゲージの合計が高いほど{}"), lambda params, summary: summary.format(_getEffectName(params[1]))),
+    109: (3, EffectSummary("編成したサポートカードの絆ゲージの合計が高いほど{}", lambda params, summary: summary.format(_getEffectName(params[1])))),
     110: (3, EffectSummary("同じトレーニングに参加したサポートカードが多いほど{} ({})",
                                                 lambda params, summary: summary.format(_getEffectName(params[1]), params[2]))),
     111: (2, EffectSummary("参加したトレーニングのトレーニングLvが高いほどトレーニング効果アップ ({})", 
                                                lambda params, summary: summary.format(params[1]))),
     112: (2, EffectSummary("{}%の確率で参加したトレーニングの失敗率が0%になることがある",lambda params, summary: summary.format(params[1]))),
     113: (1, EffectSummary("友情トレーニングが発生しているトレーニングに参加した場合")),
-    114: (4, EffectSummary("残り体力が多いほど{}が最大{}まで上昇。"), lambda params, summary: summary.format(_getEffectName(params[1]), params[3])),
+    114: (4, EffectSummary("残り体力が多いほど{}が最大{}まで上昇。", lambda params, summary: summary.format(_getEffectName(params[1]), params[3]))),
     115: (3, EffectSummary("編成したサポートカードの{} ({})", lambda params, summary: summary.format(_getEffectName(params[1]), params[2]))),
     116: (5, MultiyEffectSummary("最大{}個まで{}スキルの所持数に応じて{}効果アップ({})",2,3,4,params_formatter = lambda params, summary: summary.format(params[4], _getExEffectName(params[1]), _getEffectName(params[2]), params[3]))),
 }
