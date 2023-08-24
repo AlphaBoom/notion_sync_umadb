@@ -45,7 +45,8 @@ class MultiyEffectSummary(EffectSummary):
     def generateEffect(self):
         return SupportCardEffect(SupportCardEffectType(self.params[self._type_index]), self.params[self._value_index] * self.params[self._multiply_index])
 
-_support_card_name_mapping = {
+# category 151
+_support_card_effect_name_mapping = {
     SupportCardEffectType.SpecialTagEffectUp.value : "友情ボーナス",
     SupportCardEffectType.MotivationUp.value : "やる気効果アップ",
     SupportCardEffectType.TrainningSpeedUp.value : "スピードボーナス",
@@ -77,6 +78,7 @@ _support_card_name_mapping = {
     SupportCardEffectType.SkillTipsLvUp.value : "ヒントLvアップ",
     SupportCardEffectType.SkillTipsEventRateUp.value : "ヒント発生率アップ",
     SupportCardEffectType.GoodTrainingRateUp.value : "得意率アップ",
+    41: "全パラメータボーナス", # 不清楚是否应该作为常驻效果定义，这里只做输出说明内容使用
 }
 
 _support_card_ex_name_mapping = {
@@ -88,7 +90,7 @@ def _getExEffectName(type:int)->str:
     return _support_card_ex_name_mapping.get(type, "未知")
 
 def _getEffectName(type:int)->str:
-    return _support_card_name_mapping.get(type, "未知")
+    return _support_card_effect_name_mapping.get(type, "未知")
 
 _effectTypeExHandlers:dict[int,tuple[int,EffectSummary]] = {
     101: (2, EffectSummary("絆ゲージが{}以上の時", 
@@ -105,24 +107,26 @@ _effectTypeExHandlers:dict[int,tuple[int,EffectSummary]] = {
                                                 lambda params, summary: summary.format(params[1], _getEffectName(params[2]), params[3]))),
     107: (6, EffectSummary("現在の体力が少ないほど、友情ボーナス")),
     108: (6, EffectSummary("体力最大値が高いほど、トレーニング効果アップ")),
-    109: (3, EffectSummary("編成したサポートカードの絆ゲージの合計が高いほどトレーニング効果アップ")),
+    109: (3, EffectSummary("編成したサポートカードの絆ゲージの合計が高いほど{}"), lambda params, summary: summary.format(_getEffectName(params[1]))),
     110: (3, EffectSummary("同じトレーニングに参加したサポートカードが多いほど{} ({})",
                                                 lambda params, summary: summary.format(_getEffectName(params[1]), params[2]))),
     111: (2, EffectSummary("参加したトレーニングのトレーニングLvが高いほどトレーニング効果アップ ({})", 
                                                lambda params, summary: summary.format(params[1]))),
     112: (2, EffectSummary("{}%の確率で参加したトレーニングの失敗率が0%になることがある",lambda params, summary: summary.format(params[1]))),
     113: (1, EffectSummary("友情トレーニングが発生しているトレーニングに参加した場合")),
-    114: (4, EffectSummary("体力が多いほど、トレーニング効果アップが増える")),
+    114: (4, EffectSummary("残り体力が多いほど{}が最大{}まで上昇。"), lambda params, summary: summary.format(_getEffectName(params[1]), params[3])),
     115: (3, EffectSummary("編成したサポートカードの{} ({})", lambda params, summary: summary.format(_getEffectName(params[1]), params[2]))),
     116: (5, MultiyEffectSummary("最大{}個まで{}スキルの所持数に応じて{}効果アップ({})",2,3,4,params_formatter = lambda params, summary: summary.format(params[4], _getExEffectName(params[1]), _getEffectName(params[2]), params[3]))),
 }
 
-def _effectTypeHandler(params:list[int], offset)->tuple[SupportCardEffect, int]:
+def _effectTypeHandler(params:list[int], offset)->tuple[SupportCardEffect, int, EffectSummary]:
     if params and len(params) > offset:
         type = params[offset]
         if 0 < type <= 31:
-            return SupportCardEffect(SupportCardEffectType(type), params[offset+1]), 2
-    return None,0
+            return SupportCardEffect(SupportCardEffectType(type), params[offset+1]), 2, None
+        elif type in _support_card_effect_name_mapping:
+            return None, 2, EffectSummary(f"{_support_card_effect_name_mapping[type]}({params[offset+1]})")
+    return None,0, None
 
 def _effectTypeExHandler(params:list[int], offset)->tuple[list[SupportCardEffect], int, EffectSummary]:
     if params and len(params) > offset:
@@ -141,7 +145,7 @@ def effectTypeToStr(type: SupportCardEffectType):
     return _getEffectName(type.value)
 
 def supportCardEffectToStr(effect: SupportCardEffect):
-    return f"{_getEffectName(effect.type.value)}{effect.value}"
+    return f"{_getEffectName(effect.type.value)}({effect.value})"
 
 def _interplation(start, end, ratio):
     return start + (end - start) * ratio
@@ -176,11 +180,11 @@ def parseUniqueEffectRow(row:UniqueEffectRow)->tuple[str, list[SupportCardEffect
     effects = []
     ret_str = ""
     for i in range(2):
-        if ret_str:
-            ret_str += ","
         params = row[i*6:(i+1)*6]
         size = len(params)
         index = 0
+        if ret_str and params[index] != 0:
+            ret_str += ","
         while index < size:
             # zero check
             if params[index] == 0:
@@ -192,12 +196,14 @@ def parseUniqueEffectRow(row:UniqueEffectRow)->tuple[str, list[SupportCardEffect
             if summary:
                 ret_str += summary.summary
             index += length
-            effect, length = _effectTypeHandler(params, index)
+            effect, length, summary = _effectTypeHandler(params, index)
             if effect:
                 effects.append(effect)
                 ret_str += supportCardEffectToStr(effect)
+            elif summary:
+                ret_str += summary.summary
             index += length
             if start_index == index:
-                print(f"error in parse effect row: {params} {start_index} {index} skiped, maybe encounter new effect type?")
+                print(f"error in parse effect row: {params} {start_index} {index} (skipped), maybe encounter new effect type?")
                 break
     return ret_str, effects, level

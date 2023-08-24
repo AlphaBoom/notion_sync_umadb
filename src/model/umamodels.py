@@ -204,6 +204,7 @@ class SupportCardEffect:
 class SupportCard:
     id: str
     name: str
+    unique_effect_description:str
     rarity:SupportCardRarity
     type:SupportCardType
     event_skill_list:list[str] = None

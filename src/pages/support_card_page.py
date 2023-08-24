@@ -322,6 +322,9 @@ class SupportCardDetailPage(DetailPage):
         ]
         if card.unique_effect:
             des, _, level = parseUniqueEffectRow(card.unique_effect)
+            if not des:
+                # 如果无法解析带数值的效果则直接使用游戏内文本
+                des = card.unique_effect_description
             ret += [
                 Block(
                     heading_3=Heading3(
