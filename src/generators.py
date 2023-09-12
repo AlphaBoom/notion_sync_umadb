@@ -258,7 +258,7 @@ class UraraWinSourceGenerator(SourceGenerator):
             if card_u.trainingEventSkill and card_u.skillList:
                 train_skill_list = [
                     id for id in card_u.skillList if id not in card_u.trainingEventSkill]
-            card = SupportCard(id, name, rarity, type, event_skill_list=card_u.trainingEventSkill,
+            card = SupportCard(id, name, "", rarity, type, event_skill_list=card_u.trainingEventSkill,
                             train_skill_list=train_skill_list, original_name=original_name)
             ret.append(self.translator.translate_support_card(card))
         return ret

@@ -14,6 +14,8 @@ def get_last_commit_time_from_github(owner, repo, path):
     if r.ok:
         date_str = r.json()[0]["commit"]["committer"]["date"]
         return int(time.mktime(datetime.datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%SZ").timetuple()) - time.timezone)
+    else:
+        print(f"get last commit time from github failed: {r.status_code}")
     return -1
 
 

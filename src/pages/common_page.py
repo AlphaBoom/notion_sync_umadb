@@ -127,7 +127,7 @@ class DetailPage:
         blocks = self._getAllBlocksInPage(page)
         require_update_blocks = self._checkRequireUpdateBlocks(blocks, new_blocks)
         if require_update_blocks:
-            # simple delete all blocks and append new blocks
+            # simply delete all blocks then append new blocks
             for block in blocks:
                 deleteBlock(block.id)
             appendBlockChildren(page.id, new_blocks)
