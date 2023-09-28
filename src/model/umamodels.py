@@ -1,6 +1,6 @@
 from dataclasses import dataclass,field
 from typing import List
-from enum import Enum
+from enum import Enum, IntEnum
 from collections import namedtuple
 
 Talent = namedtuple('Talent', 'speed stamina power guts wiz')
@@ -10,7 +10,7 @@ EffectRow = namedtuple('EffectRow', 'init limit_lv5 limit_lv10 limit_lv15 limit_
 UniqueEffectRow = namedtuple('UniqueEffectRow', 'lv type_0 value_0 value_0_1 value_0_2 value_0_3 value_0_4 type_1 value_1 value_1_1 value_1_2 value_1_3 value_1_4')
 
 
-class SkillType(Enum):
+class SkillType(IntEnum):
     Speed = 1
     Stamina = 2
     Power = 3
@@ -54,7 +54,7 @@ class SkillType(Enum):
     ChallengeMatchBonusStatus = 502
     ChallengeMatchBonusMotivation = 503
 
-class SkillValueType(Enum):
+class SkillValueType(IntEnum):
     Direct = 1
     MultiplySkillNum = 2
     MultiplyTeamTotalSpeed = 3
@@ -80,7 +80,7 @@ class SkillValueType(Enum):
     MultiplyArcGlobalPotentialLevel = 24
     MultiplyTopLeadAmount = 25
 
-class SkillTimeType(Enum):
+class SkillTimeType(IntEnum):
     UNKNOWN = 0
     Direct = 1
     MultiplyDistanceDiffTop = 2
@@ -91,22 +91,22 @@ class SkillTimeType(Enum):
     MultiplyRemainHp2 = 7
 
 
-class SkillRarity(Enum):
+class SkillRarity(IntEnum):
     Normal = 1
     Rare = 2
     Unique = 3
     Upgrade = 4
 
-class SupportCardEffectType(Enum):
+class SupportCardEffectType(IntEnum):
     NONE = 0
     SpecialTagEffectUp = 1
     MotivationUp = 2
-    TrainningSpeedUp = 3
-    TrainningStaminaUp = 4
-    TrainningPowerUp = 5
-    TrainningGutsUp = 6
-    TrainningWizUp = 7
-    TrainningEffectUp = 8
+    TrainingSpeedUp = 3
+    TrainingStaminaUp = 4
+    TrainingPowerUp = 5
+    TrainingGutsUp = 6
+    TrainingWizUp = 7
+    TrainingEffectUp = 8
     InitialSpeedUp = 9
     InitalStaminaUp = 10
     InitialPowerUp = 11
@@ -125,18 +125,18 @@ class SupportCardEffectType(Enum):
     WizLimitUp = 24
     EventRecoveryAmountUp = 25
     EventEffetcUp = 26
-    TrainningFailureRateDown = 27
-    TrainningHPConsumptionDown = 28
+    TrainingFailureRateDown = 27
+    TrainingHPConsumptionDown = 28
     MinigameEffectUP = 29
     SkillPointBonus = 30
     WizRecoverUp = 31 
 
-class SupportCardRarity(Enum):
+class SupportCardRarity(IntEnum):
     R = 1
     SR = 2
     SSR = 3
 
-class SupportCardType(Enum):
+class SupportCardType(IntEnum):
     Speed = 1
     Stamina = 2
     Power = 3

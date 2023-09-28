@@ -47,43 +47,44 @@ class MultiyEffectSummary(EffectSummary):
 
 # category 151
 _support_card_effect_name_mapping = {
-    SupportCardEffectType.SpecialTagEffectUp.value : "友情ボーナス",
-    SupportCardEffectType.MotivationUp.value : "やる気効果アップ",
-    SupportCardEffectType.TrainningSpeedUp.value : "スピードボーナス",
-    SupportCardEffectType.TrainningStaminaUp.value : "スタミナボーナス",
-    SupportCardEffectType.TrainningPowerUp.value : "パワーボーナス",
-    SupportCardEffectType.TrainningGutsUp.value : "根性ボーナス",
-    SupportCardEffectType.TrainningWizUp.value : "賢さボーナス",
-    SupportCardEffectType.TrainningEffectUp.value : "トレーニング効果アップ",
-    SupportCardEffectType.InitialSpeedUp.value : "初期スピードアップ",
-    SupportCardEffectType.InitalStaminaUp.value : "初期スタミナアップ",
-    SupportCardEffectType.InitialPowerUp.value : "初期パワーアップ",
-    SupportCardEffectType.InitialGutsUp.value : "初期根性アップ",
-    SupportCardEffectType.InitialWizUp.value : "初期賢さアップ",
-    SupportCardEffectType.InitalEvaluationUp.value : "初期絆ゲージアップ",
-    SupportCardEffectType.SpeedLimitUp.value : "スピード上限アップ",
-    SupportCardEffectType.StaminaLimitUp.value : "スタミナ上限アップ",
-    SupportCardEffectType.PowerLimitUp.value : "パワー上限アップ",
-    SupportCardEffectType.GutzLimitUp.value : "根性上限アップ",
-    SupportCardEffectType.WizLimitUp.value : "賢さ上限アップ",
-    SupportCardEffectType.EventRecoveryAmountUp.value : "イベント回復量アップ",
-    SupportCardEffectType.TrainningFailureRateDown.value : "失敗率ダウン",
-    SupportCardEffectType.EventEffetcUp.value : "イベント効果アップ",
-    SupportCardEffectType.TrainningHPConsumptionDown.value : "体力消費ダウン",
-    SupportCardEffectType.MinigameEffectUP.value : "ミニゲーム効果アップ",
-    SupportCardEffectType.SkillPointBonus.value : "スキルPtボーナス",
-    SupportCardEffectType.WizRecoverUp.value : "賢さ友情回復量アップ",
-    SupportCardEffectType.RaceStatusUp.value : "レースボーナス",
-    SupportCardEffectType.RaceFanUp.value : "ファン数ボーナス",
-    SupportCardEffectType.SkillTipsLvUp.value : "ヒントLvアップ",
-    SupportCardEffectType.SkillTipsEventRateUp.value : "ヒント発生率アップ",
-    SupportCardEffectType.GoodTrainingRateUp.value : "得意率アップ",
-    41: "全パラメータボーナス", # 不清楚是否应该作为常驻效果定义，这里只做输出说明内容使用
+    SupportCardEffectType.SpecialTagEffectUp : "友情加成",
+    SupportCardEffectType.MotivationUp : "干劲效果提升",
+    SupportCardEffectType.TrainingSpeedUp : "速度加成",
+    SupportCardEffectType.TrainingStaminaUp : "耐力加成",
+    SupportCardEffectType.TrainingPowerUp : "力量加成",
+    SupportCardEffectType.TrainingGutsUp : "根性加成",
+    SupportCardEffectType.TrainingWizUp : "智力加成",
+    SupportCardEffectType.TrainingEffectUp : "训练效果提高",
+    SupportCardEffectType.InitialSpeedUp : "初始速度提升",
+    SupportCardEffectType.InitalStaminaUp : "初始耐力提升",
+    SupportCardEffectType.InitialPowerUp : "初始力量提升",
+    SupportCardEffectType.InitialGutsUp : "初始根性提升",
+    SupportCardEffectType.InitialWizUp : "初始智力提升",
+    SupportCardEffectType.InitalEvaluationUp : "初始羁绊提升",
+    SupportCardEffectType.SpeedLimitUp : "スピード上限アップ",
+    SupportCardEffectType.StaminaLimitUp : "スタミナ上限アップ",
+    SupportCardEffectType.PowerLimitUp : "パワー上限アップ",
+    SupportCardEffectType.GutzLimitUp : "根性上限アップ",
+    SupportCardEffectType.WizLimitUp : "賢さ上限アップ",
+    SupportCardEffectType.EventRecoveryAmountUp : "事件回复量提升",
+    SupportCardEffectType.TrainingFailureRateDown : "失败率降低",
+    SupportCardEffectType.EventEffetcUp : "事件效果提升",
+    SupportCardEffectType.TrainingHPConsumptionDown : "体力消耗降低",
+    SupportCardEffectType.MinigameEffectUP : "ミニゲーム効果アップ",
+    SupportCardEffectType.SkillPointBonus : "技能点加成",
+    SupportCardEffectType.WizRecoverUp : "智力友情回复量提升",
+    SupportCardEffectType.RaceStatusUp : "比赛加成",
+    SupportCardEffectType.RaceFanUp : "粉丝数加成",
+    SupportCardEffectType.SkillTipsLvUp : "启发等级提升",
+    SupportCardEffectType.SkillTipsEventRateUp : "启发出现率提升",
+    SupportCardEffectType.GoodTrainingRateUp : "擅长率提升",
+    41: "全属性加成", # 只有神鹰有此词条
 }
 
+# 高峰/善信的技能类型
 _support_card_ex_name_mapping = {
-    1 : "速度が上がる",
-    3 : "持久力が回復する"
+    1 : "速度",
+    3 : "体力回复"
 }
 
 def _getExEffectName(type:int)->str:
@@ -92,34 +93,35 @@ def _getExEffectName(type:int)->str:
 def _getEffectName(type:int)->str:
     return _support_card_effect_name_mapping.get(type, "未知")
 
-# 这里有点乱，辅助记忆下：
-# 作用是将特殊固有效果转换为一个或多个普通效果，基于上述目的未完成内容有：
-# 105-115以及后续未定义的新类型
+# viktor: 增加了新固有效果（117-根大和，118-佐岳）
+# 部分数值写死（如108）还没弄清字段具体意义。
 _effectTypeExHandlers:dict[int,tuple[int,EffectSummary]] = {
-    101: (2, EffectSummary("絆ゲージが{}以上の時", 
+    101: (2, EffectSummary("羁绊>={}时", 
                                                lambda params, summary: summary.format(params[1]))),
-    102: (3, SingleTypeEffectSummary("絆ゲージが{}以上かつ得意トレーニングでない時、トレーニング効果アップ ({})", 2, SupportCardEffectType.TrainningEffectUp,
+    102: (3, SingleTypeEffectSummary("羁绊>={}且不是擅长训练时，训练效果提高({})", 2, SupportCardEffectType.TrainingEffectUp,
                                                lambda params, summary: summary.format(params[1], params[2]))),
-    103: (3, SingleTypeEffectSummary("編成しているサポートカードのタイプが{}種類以上ならトレーニング効果アップ ({})", 2, SupportCardEffectType.TrainningEffectUp,
+    103: (3, SingleTypeEffectSummary("编入支援卡种类>={}时，训练效果提高 ({})", 2, SupportCardEffectType.TrainingEffectUp,
                                                lambda params, summary: summary.format(params[1], params[2]))),
-    104: (3, SingleTypeEffectSummary("最大{}人ファンまで各{}人ファンでトレーニング効果アップ (1)を獲得 (合計トレーニング効果アップ ({}))", 2, SupportCardEffectType.TrainningEffectUp,
+    104: (3, SingleTypeEffectSummary("最大{}人/每{}粉丝，训练效果+1%(总共+({}))", 2, SupportCardEffectType.TrainingEffectUp,
                                                 lambda params, summary: summary.format(params[1]*params[2], params[1], params[2]))),
-    105: (3, EffectSummary("編成しているサポートカードのタイプに応じて初期基礎能力アップ ({})、友情かグループタイプの場合で各初期礎能力アップ ({})",
+    105: (3, EffectSummary("根据编成支援卡类型的初始属性加成(对应属性+{}，友人/团队卡全属性+{})",
                                                 lambda params, summary: summary.format(params[1], params[2]))),
-    106: (4, EffectSummary("このカードと友情トレーニングをする度に最大{}回まで{} ({})",
+    106: (4, EffectSummary("友情训练后提升友情加成，最多{}次{} ({})",
                                                 lambda params, summary: summary.format(params[1], _getEffectName(params[2]), params[3]))),
-    107: (6, EffectSummary("現在の体力が少ないほど、友情ボーナス")),
-    108: (6, EffectSummary("体力最大値が高いほど、トレーニング効果アップ")),
-    109: (3, EffectSummary("編成したサポートカードの絆ゲージの合計が高いほど{}", lambda params, summary: summary.format(_getEffectName(params[1])))),
-    110: (3, EffectSummary("同じトレーニングに参加したサポートカードが多いほど{} ({})",
+    107: (6, EffectSummary("体力越低友情加成越高，基础{}，体力<={}时最大{}友情", lambda params, summary: summary.format(params[5], params[3], params[4]))),
+    108: (6, EffectSummary("体力最大值越高训练效果提升越高，基础{}，体力每+4，训练效果+3%，合计+{}",
+                                                lambda params, summary: summary.format(params[4], params[5]))),
+    109: (3, EffectSummary("支援卡羁绊总和越高训练加成越高(最大{})", lambda params, summary: summary.format(_getEffectName(params[1])))),
+    110: (3, EffectSummary("同时训练支援卡数量越多，{}提升越高 ({})",
                                                 lambda params, summary: summary.format(_getEffectName(params[1]), params[2]))),
-    111: (2, EffectSummary("参加したトレーニングのトレーニングLvが高いほどトレーニング効果アップ ({})", 
-                                               lambda params, summary: summary.format(params[1]))),
-    112: (2, EffectSummary("{}%の確率で参加したトレーニングの失敗率が0%になることがある",lambda params, summary: summary.format(params[1]))),
-    113: (1, EffectSummary("友情トレーニングが発生しているトレーニングに参加した場合")),
-    114: (4, EffectSummary("残り体力が多いほど{}が最大{}まで上昇。", lambda params, summary: summary.format(_getEffectName(params[1]), params[3]))),
-    115: (3, EffectSummary("編成したサポートカードの{} ({})", lambda params, summary: summary.format(_getEffectName(params[1]), params[2]))),
-    116: (5, MultiyEffectSummary("最大{}個まで{}スキルの所持数に応じて{}効果アップ({})",2,3,4,params_formatter = lambda params, summary: summary.format(params[4], _getExEffectName(params[1]), _getEffectName(params[2]), params[3]))),
+    111: (2, EffectSummary("参与训练的设施等级越高，{}效果越高 (5%/每级)", lambda params, summary: summary.format(_getEffectName(params[1])))),
+    112: (2, EffectSummary("参与的训练有{}%概率失败率为0%",lambda params, summary: summary.format(params[1]))),
+    113: (1, EffectSummary("参加友情训练时，")),
+    114: (4, EffectSummary("剩余体力越多，{}效果越高（最大{}%）", lambda params, summary: summary.format(_getEffectName(params[1]), params[3]))),
+    115: (3, EffectSummary("编成支援卡的 {} 提升({})", lambda params, summary: summary.format(_getEffectName(params[1]), params[2]))),
+    116: (5, MultiyEffectSummary("根据{}技能个数，提高{}效果(每个+{}, 最大{}个)",2,3,4,params_formatter = lambda params, summary: summary.format(_getExEffectName(params[1]), _getEffectName(params[2]), params[3], params[4]))),
+    117: (4, EffectSummary("总训练设施等级越高，{}越高(最高+{})", lambda params, summary: summary.format(_getEffectName(params[1]), params[3]) )),
+    118: (3, EffectSummary("羁绊>={}时，可以出现在2个位置", lambda params, summary: summary.format(params[2]) )),
 }
 
 def _effectTypeHandler(params:list[int], offset)->tuple[SupportCardEffect, int, EffectSummary]:
