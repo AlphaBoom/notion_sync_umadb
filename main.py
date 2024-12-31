@@ -37,6 +37,7 @@ def print_help():
       --support_card_sync_thread_count <support_card_sync_thread_count>
       --support_card_icon_mapping <support_card_icon_mapping> 
       --support_card_cover_mapping <support_card_cover_mapping>
+      --lang <language codes>
     """)
 available_generators = ("local","urarawin")
 available_update_modes = ("insert","full","translate_only")
@@ -67,6 +68,7 @@ if __name__ == '__main__':
     generator_name = "lcoal"
     update_mode = "insert"
     properties_file = "local.properties"
+    lang = None
     for opt,arg in opts:
         if opt in ("-h","--help"):
             print_help()
@@ -109,15 +111,25 @@ if __name__ == '__main__':
             support_card_icon_mapping_file = arg
         elif opt == "--support_card_cover_mapping":
             support_card_cover_mapping_file = arg
+        elif opt == "--lang":
+            lang = arg
     
     properties = Properties(properties_file)
 
     if generator_name == "urarawin":
         from src.generators import UraraWinSourceGenerator
-        source = UraraWinSourceGenerator(properties)
+        from src.translators import UraraWinTranslator
+        translator = None
+        if lang:
+            translator = UraraWinTranslator(properties, locale=lang)
+        source = UraraWinSourceGenerator(properties, translator=translator)
     else:
         from src.generators import LocalSourceGenerator
-        source = LocalSourceGenerator(properties)
+        from src.translators import TrainersLegendTranslator
+        translator = None
+        if lang:
+            translator = TrainersLegendTranslator(properties, locale=lang)
+        source = LocalSourceGenerator(properties, translator=translator)
     
     client = SyncClient(properties, source, update_mode)
     client.setup_external_resource_mapping(skill_icon_mapping=get_mapping(skill_icon_mapping_file, source.generate_skill_icon_mapping), 

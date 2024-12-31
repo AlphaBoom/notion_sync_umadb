@@ -43,10 +43,8 @@ def get_json_from_github_file(properties: Properties, local_file, owner, repo, b
                 update = False
         else:
             update = False
-    if update:
-        download_file_from_github(owner, repo, branch, path, local_file)
-        if os.path.exists(local_file):
-            properties.write_file_changed_time(local_file, int(time.time()))
+    if update and download_file_from_github(owner, repo, branch, path, local_file):
+        properties.write_file_changed_time(local_file, int(time.time()))
     if os.path.exists(local_file):
         with open(local_file, 'r', encoding='utf-8') as f:
             return json.load(f)

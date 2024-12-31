@@ -21,6 +21,7 @@ opts = {
     "--support_card_sync_thread_count": 5,
     "--support_card_icon_mapping": '"output/supportcard_icon_mapping.json"',
     "--support_card_cover_mapping": '"output/supportcard_cover_mapping.json"',
+    "--lang": "zh_CN",
 }
 command_line = "python main.py"
 for opt, arg in opts.items():

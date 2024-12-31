@@ -16,6 +16,19 @@ class Translator(ABC):
     def translate_support_card(self, support_card:SupportCard) -> SupportCard:
         pass
 
+class _NoopTranslator(Translator):
+
+    def translate_skill(self, skill: Skill) -> Skill:
+        return skill
+    
+    def translate_chara_card(self, chara_card: CharacterCard) -> CharacterCard:
+        return chara_card
+    
+    def translate_support_card(self, support_card: SupportCard) -> SupportCard:
+        return support_card
+
+noopTranslator = _NoopTranslator()
+
 class UraraWinTranslator(Translator):
 
     def __init__(self, properties, locale="zh_CN") -> None:

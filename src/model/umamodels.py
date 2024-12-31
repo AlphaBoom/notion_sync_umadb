@@ -1,6 +1,6 @@
 from dataclasses import dataclass,field
 from typing import List
-from enum import Enum, IntEnum
+from enum import IntEnum
 from collections import namedtuple
 
 Talent = namedtuple('Talent', 'speed stamina power guts wiz')
@@ -8,9 +8,17 @@ Proper = namedtuple('Proper', 'short mile middle long nige senko sashi oikomi tu
 Status = namedtuple('Status', 'speed stamina power guts wiz')
 EffectRow = namedtuple('EffectRow', 'init limit_lv5 limit_lv10 limit_lv15 limit_lv20 limit_lv25 limit_lv30 limit_lv35 limit_lv40 limit_lv45 limit_lv50')
 UniqueEffectRow = namedtuple('UniqueEffectRow', 'lv type_0 value_0 value_0_1 value_0_2 value_0_3 value_0_4 type_1 value_1 value_1_1 value_1_2 value_1_3 value_1_4')
+class IntEnumEx(IntEnum):
 
+    @classmethod
+    def _missing_(cls, value):
+        enum_member = int.__new__(cls, value)
+        enum_member._name_ = f"UNKNOWN({value})"
+        enum_member._value_ = value
+        enum_member = cls._value2member_map_.setdefault(value, enum_member)
+        return enum_member
 
-class SkillType(IntEnum):
+class SkillType(IntEnumEx):
     Speed = 1
     Stamina = 2
     Power = 3
@@ -49,12 +57,13 @@ class SkillType(IntEnum):
     ActivateRandomNormalAndRareSkill = 36
     ActivateRandomRareSkill = 37
     DebuffCancel = 38
-    NOUSE_18 = 39
+    DebuffAbilityValueMultiply = 39
+    DebuffAbilityValueMultiplyOtherActivate = 40
     ChallengeMatchBonus_Old = 501
     ChallengeMatchBonusStatus = 502
     ChallengeMatchBonusMotivation = 503
 
-class SkillValueType(IntEnum):
+class SkillValueType(IntEnumEx):
     Direct = 1
     MultiplySkillNum = 2
     MultiplyTeamTotalSpeed = 3
@@ -79,8 +88,34 @@ class SkillValueType(IntEnum):
     MultiplySpeed2 = 23
     MultiplyArcGlobalPotentialLevel = 24
     MultiplyTopLeadAmount = 25
+    MultiplySportFinalCompeWinCount = 26
 
-class SkillTimeType(IntEnum):
+class SkillTargetType(IntEnumEx):
+    Self = 1
+    All = 2
+    AllOtherSelf = 3
+    Visible = 4
+    RandomOtherSelf = 5
+    Order = 6
+    OrderInfront = 7
+    OrderBehind = 8
+    SelfInfront = 9
+    SelfBehind = 10
+    TeamMember = 11
+    Near = 12
+    SelfAndBlockFront = 13
+    BlockSide = 14
+    NearInfront = 15
+    NearBehind = 16
+    RunningStyle = 17
+    RunningStyleOtherSelf = 18
+    SelfInfrontTemptation = 19
+    SelfBehindTempatation = 20
+    RunningStyleTemptationOtherSelf = 21
+    CharaId = 22
+    ActivateHealSkill = 23
+
+class SkillTimeType(IntEnumEx):
     UNKNOWN = 0
     Direct = 1
     MultiplyDistanceDiffTop = 2
@@ -91,13 +126,19 @@ class SkillTimeType(IntEnum):
     MultiplyRemainHp2 = 7
 
 
-class SkillRarity(IntEnum):
+class SkillRarity(IntEnumEx):
     Normal = 1
     Rare = 2
     Unique = 3
     Upgrade = 4
+    Rarity5 = 5
+    Rarity6 = 6
 
-class SupportCardEffectType(IntEnum):
+class SkillUpgradeType(IntEnumEx):
+    Chara = 1
+    Scenario = 2
+
+class SupportCardEffectType(IntEnumEx):
     NONE = 0
     SpecialTagEffectUp = 1
     MotivationUp = 2
@@ -131,12 +172,12 @@ class SupportCardEffectType(IntEnum):
     SkillPointBonus = 30
     WizRecoverUp = 31 
 
-class SupportCardRarity(IntEnum):
+class SupportCardRarity(IntEnumEx):
     R = 1
     SR = 2
     SSR = 3
 
-class SupportCardType(IntEnum):
+class SupportCardType(IntEnumEx):
     Speed = 1
     Stamina = 2
     Power = 3

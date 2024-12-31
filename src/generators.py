@@ -4,7 +4,7 @@ import os
 from src.db import *
 from src.model import *
 from src.config import Properties
-from src.translators import UraraWinTranslator,TrainersLegendTranslator
+from src.translators import Translator,noopTranslator
 
 
 class SourceGenerator(ABC):
@@ -38,7 +38,7 @@ class SourceGenerator(ABC):
 
 
 class LocalSourceGenerator(SourceGenerator):
-    def __init__(self, properties: Properties, gamedatapath: str = None) -> None:
+    def __init__(self, properties: Properties, gamedatapath: str = None, translator:Translator=None) -> None:
         super().__init__()
         if gamedatapath:
             dbpath = os.path.join(gamedatapath, 'master', 'master.mdb')
@@ -47,13 +47,16 @@ class LocalSourceGenerator(SourceGenerator):
                 '~'), 'AppData', 'LocalLow', 'Cygames', 'umamusume', 'master', 'master.mdb')
         self.db: Umadb = Umadb(dbpath)
         self.p = properties
-        self.translator = TrainersLegendTranslator(properties)
+        self.translator = translator
+        if not self.translator:
+            self.translator = noopTranslator
 
     def get_all_skill(self) -> list[Skill]:
         skill_list = list(self.db.get_all_skill_data())
         def convert(skill:Skill):
             skill.original_name = skill.name
             new_skill =  self.translator.translate_skill(skill)
+            new_skill.description = new_skill.description.replace("\\n","")
             if new_skill.unique_skill_ids:
                 new_skill.name = new_skill.name + "（继承）"
             return new_skill
@@ -85,14 +88,15 @@ class LocalSourceGenerator(SourceGenerator):
 
 
 class UraraWinSourceGenerator(SourceGenerator):
-    def __init__(self, properties: Properties) -> None:
-        self.translator = UraraWinTranslator(properties)
+    def __init__(self, properties: Properties, translator:Translator=None) -> None:
+        
         self.db = Urarawindb(properties)
         self.skill_list_u: list[UraraSkill] = self.db.get_all_skill_data()
-        self.chara_card_list_u: list[UraraCharaCard] = self.db.get_all_chara_card_data(
-        )
-        self.support_card_list_u: list[UraraSupportCard] = self.db.get_all_support_card_data(
-        )
+        self.chara_card_list_u: list[UraraCharaCard] = self.db.get_all_chara_card_data()
+        self.support_card_list_u: list[UraraSupportCard] = self.db.get_all_support_card_data()
+        self.translator = None
+        if not self.translator:
+            self.translator = noopTranslator
 
     def _format_img_url(self, url: str):
         if not url:
